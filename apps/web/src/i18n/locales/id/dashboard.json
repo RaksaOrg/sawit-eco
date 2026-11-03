@@ -1,0 +1,154 @@
+{
+  "page_title": "Ringkasan Eksekutif",
+  "breadcrumb": "Beranda",
+  "subtitle": "{{tenant}}{{location}} · Periode: {{period}}",
+  "reload_tooltip": "Muat ulang data",
+  "reload": "Muat Ulang",
+  "filter_title": "Filter Periode",
+  "filter_period_label": "Periode",
+  "period_today": "Hari Ini",
+  "period_7d": "7 Hari",
+  "period_30d": "30 Hari",
+  "kpi_section_title": "Indikator Kinerja Utama",
+  "kpi": {
+    "production": {
+      "title": "Produksi TBS",
+      "subtitle": "Total panen periode ini",
+      "status_empty": "Belum ada data",
+      "status_reports": "{{total}} laporan masuk",
+      "description": "Akumulasi produksi tandan buah segar dari laporan mandor pada periode terpilih."
+    },
+    "harvest_productivity": {
+      "title": "Produktivitas Panen",
+      "subtitle": "Target di atas 200 Kg/HK",
+      "status_empty": "Belum ada data",
+      "status_above": "Di atas target",
+      "status_below": "Di bawah target",
+      "description": "Hasil panen per hari kerja. Semakin tinggi, semakin efisien tim panen.",
+      "target_label": "Target"
+    },
+    "maintenance_productivity": {
+      "title": "Produktivitas Rawat",
+      "subtitle": "Target di atas 1,2 Ha/HK",
+      "status_empty": "Belum ada data",
+      "status_above": "Di atas target",
+      "status_below": "Di bawah target",
+      "description": "Luas perawatan yang diselesaikan per hari kerja pada periode terpilih.",
+      "target_label": "Target"
+    },
+    "rotation": {
+      "title": "Status Rotasi Panen",
+      "subtitle": "Blok overdue di atas 14 hari",
+      "status_action": "Perlu tindakan",
+      "status_controlled": "Terkendali",
+      "description": "{{active}} dari {{total}} blok berada dalam rotasi ideal 7–14 hari."
+    },
+    "tasks": {
+      "title": "Tugas Lapangan Aktif",
+      "subtitle": "Ditugaskan & sedang berjalan",
+      "status_overdue": "{{total}} overdue",
+      "status_none": "Tidak ada overdue",
+      "description": "Perintah kerja lapangan yang belum selesai pada seluruh blok."
+    },
+    "diagnosis": {
+      "title": "Diagnosa Risiko Tinggi",
+      "subtitle": "Risiko tinggi & kritis",
+      "status_total": "{{total}} total diagnosa",
+      "description": "Temuan agronomi yang memerlukan tindak lanjut prioritas."
+    },
+    "learning": {
+      "title": "Penyelesaian Pembelajaran",
+      "subtitle": "{{total}} modul tersedia",
+      "status_progress": "Progres tim lapangan",
+      "description": "Persentase penyelesaian materi pembelajaran oleh mandor dan pekerja.",
+      "status_empty": "Belum ada data"
+    },
+    "orders": {
+      "title": "Nilai Pesanan Produk",
+      "subtitle": "Commerce perkebunan",
+      "status_gap": "{{total}} product gap terbuka",
+      "status_pending": "{{pending}} menunggu persetujuan · {{active}} produk aktif",
+      "description": "Nilai pesanan sarana produksi yang tercatat pada tenant ini."
+    }
+  },
+  "rotation_card_title": "Status Rotasi Panen per Blok",
+  "rotation_card_subtitle": "Siklus panen ideal 7–14 hari",
+  "rotation_empty_title": "Belum Ada Data Blok",
+  "rotation_empty_subtitle": "Master blok belum tersedia untuk tenant ini.",
+  "rotation_no_data": "Belum ada data rotasi panen",
+  "rotation_table_accessible_name": "Tabel rotasi panen per blok",
+  "attention_card_title": "Perlu Perhatian",
+  "attention_card_subtitle": "Tindak lanjut prioritas operasional",
+  "attention_empty_title": "Tidak Ada Isu Prioritas",
+  "attention_empty_subtitle": "Tidak ada tugas overdue, diagnosa risiko tinggi, atau pesanan menunggu.",
+  "column_block_code": "Kode Blok",
+  "column_last_harvest": "Panen Terakhir",
+  "column_days_since_harvest": "Hari Sejak Panen",
+  "column_rotation_status": "Status Rotasi",
+  "intelligence": {
+    "title": "Anomali Harga Input",
+    "subtitle": "Intelijen Rantai Pasok",
+    "section_title": "Intelijen Rantai Pasok & Anomali Harga",
+    "status_spike": "{{total}} anomali harga terdeteksi (>20%)",
+    "status_stable": "Harga input wajar dalam median",
+    "description": "Pemantauan lonjakan harga pupuk/pestisida dari penawaran pasar.",
+    "pdp_safe": "Data Masukan Petani & Pemasok Terlindungi UU PDP (Masked Alias)",
+    "empty_title": "Tidak Ada Anomali Harga",
+    "empty_subtitle": "Seluruh kuotasi sarana produksi berada dalam batas wajar (<20% deviasi)."
+  },
+  "pdp": {
+    "title": "Audit Kepatuhan PDP",
+    "subtitle": "UU No. 27 Tahun 2022",
+    "scale": "Log",
+    "status_verified": "0 kebocoran PII",
+    "description": "Total pembersihan dan audit data pribadi petani/pemasok yang tersimpan."
+  },
+  "funnel": {
+    "title": "Konversi Rekomendasi (Funnel)",
+    "subtitle": "Closed-loop diagnosa ke beli",
+    "repeat_title": "Repeat Purchase Rate",
+    "repeat_subtitle": "Retensi sarana produksi",
+    "status_conversion": "{{rate}}% konversi diagnosa ke order",
+    "status_repeat": "{{rate}}% pembelian berulang",
+    "description": "Pengukuran efektivitas konversi rekomendasi agronomi menjadi transaksi resmi."
+  },
+  "impact": {
+    "section_title": "Transparansi Pasar & Pemotongan Margin Tengkulak",
+    "subtitle": "Benchmark data riil harga acuan vs penawaran tengkulak lokal",
+    "savings_title": "Estimasi Penghematan Petani",
+    "savings_subtitle": "Pemotongan rantai pasok",
+    "status_savings": "Penghematan dari eliminasi markup tengkulak",
+    "description": "Nilai ekonomi yang diselamatkan petani dengan membeli langsung sarana resmi.",
+    "empty_title": "Belum Ada Data Pembanding Pasar",
+    "empty_subtitle": "Data harga acuan pasar regional sedang dikompilasi.",
+    "column_commodity": "Komoditas / Sarana",
+    "column_region": "Wilayah Benchmark",
+    "column_official": "Harga Resmi Acuan",
+    "column_tengkulak": "Tawaran Tengkulak",
+    "column_margin": "Margin Tengkulak Dipotong",
+    "column_savings": "Penghematan Petani"
+  },
+  "launchpad": {
+    "insights": "Insights",
+    "quick_access": "Akses Cepat",
+    "market_intelligence": "Intelijen Pasar",
+    "hk_present": "HK Hadir",
+    "harvest_kg": "Kg Panen",
+    "awaiting_approval": "Menunggu Persetujuan",
+    "block_prefix": "Blok {{code}}",
+    "harvest_info": "Panen: {{date}} ({{days}})",
+    "price_deviation": "+{{value}}% deviasi harga",
+    "quick": {
+      "task_title": "Buat Tugas Baru",
+      "task_sub": "Penugasan mandor & pekerja",
+      "attendance_title": "Presensi & HK",
+      "attendance_sub": "Verifikasi kehadiran mandor",
+      "agronomy_title": "Diagnosa Agronomi",
+      "agronomy_sub": "Hama, penyakit & defisiensi",
+      "catalog_title": "Katalog Sarpras",
+      "catalog_sub": "Beli pupuk & alat kerja",
+      "reports_title": "Rekap Laporan",
+      "reports_sub": "Tabel operasional harian"
+    }
+  }
+}

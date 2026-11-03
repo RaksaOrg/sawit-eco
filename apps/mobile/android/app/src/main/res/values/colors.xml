@@ -1,0 +1,8 @@
+<resources>
+  <color name="splashscreen_background">#F5FAFD</color>
+  <color name="splash_progress_track">#C9E4D6</color>
+  <color name="splash_progress_fill">#02653E</color>
+  <color name="splash_tagline">#475569</color>
+  <color name="colorPrimary">#02653E</color>
+  <color name="ic_launcher_background">#FFFFFF</color>
+</resources>

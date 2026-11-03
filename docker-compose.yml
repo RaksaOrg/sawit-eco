@@ -1,0 +1,62 @@
+name: sawit-ecosystem
+
+services:
+  postgres:
+    image: postgres:13
+    ports:
+      - '5433:5432'
+    environment:
+      POSTGRES_USER: sawitecosystem
+      POSTGRES_PASSWORD: sawitecosystem
+      POSTGRES_DB: sawitecosystem
+    volumes:
+      - postgres-data:/var/lib/postgresql/data/
+      - ./apps/web/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    command: >
+      postgres
+      -c work_mem=256MB
+      -c maintenance_work_mem=256MB
+      -c max_wal_size=16GB
+      -c min_wal_size=4GB
+      -c log_checkpoints=off
+      -c checkpoint_warning=30
+      -c checkpoint_timeout=300
+      -c checkpoint_flush_after=32
+      -c checkpoint_completion_target=0.9
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U sawitecosystem -h localhost']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sawit-ecosystem
+  ollama:
+    build:
+      context: ./docker/ollama
+    environment:
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+      VISION_MODEL: ${VISION_MODEL:-llama3.2-vision}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-30m}
+    ports:
+      - '11434:11434'
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+    # ── Optional: GPU Passthrough (for Linux with Nvidia GPU only) ──
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    networks:
+      - sawit-ecosystem
+
+volumes:
+  postgres-data:
+  ollama-models:
+
+networks:
+  sawit-ecosystem:
+    driver: bridge

@@ -1,0 +1,48 @@
+{
+  "catalog": {
+    "title": "Katalog Materi Perawatan",
+    "progress": "Progres Belajar Saya"
+  },
+  "module": {
+    "duration": "Estimasi: 5 Menit",
+    "mark_complete": "Tandai Telah Dipahami",
+    "read_module": "Pelajari Materi",
+    "create_module": "Tambah Modul Belajar",
+    "title_label": "Judul Materi",
+    "category_label": "Kategori",
+    "desc_label": "Deskripsi Singkat",
+    "duration_label": "Estimasi Durasi (Menit)",
+    "content_label": "Isi Materi / Panduan SOP",
+    "video_label": "URL Video Singkat (Opsional)",
+    "video_guide_label": "Video Pembelajaran",
+    "select_employee": "Pilih Karyawan / Mandor",
+    "mark_success": "Materi berhasil ditandai selesai dipelajari",
+    "create_success": "Modul pembelajaran berhasil diterbitkan",
+    "cat_agronomy": "Agronomi",
+    "cat_harvest": "Panen",
+    "cat_fertilizing": "Pemupukan",
+    "cat_k3": "K3 & APD",
+    "cat_maintenance": "Perawatan"
+  },
+  "list": {
+    "page_title": "Materi Pembelajaran",
+    "breadcrumb": "Pembelajaran",
+    "subtitle": "{{tenant}} · {{total}} modul pembelajaran lapangan",
+    "filter_title": "Filter Materi",
+    "filter_category_label": "Kategori",
+    "search_placeholder": "Cari materi atau kategori…",
+    "empty_title": "Belum Ada Materi Pembelajaran",
+    "empty_subtitle": "Modul panen, pemupukan, hama, dan K3 akan tampil di sini setelah diterbitkan asisten agronomi.",
+    "no_data": "Tidak ada materi yang cocok dengan filter",
+    "table_accessible_name": "Tabel materi pembelajaran",
+    "column_material": "Materi",
+    "column_duration": "Durasi",
+    "column_completed_mandor": "Selesai (Mandor)",
+    "column_completion": "Penyelesaian",
+    "duration_value": "{{minutes}} menit",
+    "status_no_data": "Belum ada data",
+    "status_good": "Baik",
+    "status_in_progress": "Berjalan",
+    "status_low": "Rendah"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "catalog": {
+    "title": "Care Material Catalog",
+    "progress": "My Learning Progress"
+  },
+  "module": {
+    "duration": "Estimated: 5 Minutes",
+    "mark_complete": "Mark as Understood",
+    "read_module": "Study Material",
+    "create_module": "New Learning Module",
+    "title_label": "Module Title",
+    "category_label": "Category",
+    "desc_label": "Short Description",
+    "duration_label": "Estimated Duration (Minutes)",
+    "content_label": "Content / SOP Guide",
+    "video_label": "Short Video URL (Optional)",
+    "video_guide_label": "Learning Video",
+    "select_employee": "Select Employee / Supervisor",
+    "mark_success": "Material successfully marked as completed",
+    "create_success": "Learning module successfully published",
+    "cat_agronomy": "Agronomy",
+    "cat_harvest": "Harvest",
+    "cat_fertilizing": "Fertilizing",
+    "cat_k3": "HSE & PPE",
+    "cat_maintenance": "Maintenance"
+  },
+  "list": {
+    "page_title": "Learning Modules",
+    "breadcrumb": "Learning",
+    "subtitle": "{{tenant}} · {{total}} field learning modules",
+    "filter_title": "Filter Materials",
+    "filter_category_label": "Category",
+    "search_placeholder": "Search material or category…",
+    "empty_title": "No Learning Modules Yet",
+    "empty_subtitle": "Harvesting, fertilization, pest, and safety modules will appear after being published by agronomy assistants.",
+    "no_data": "No material matches the filter",
+    "table_accessible_name": "Learning materials table",
+    "column_material": "Material",
+    "column_duration": "Duration",
+    "column_completed_mandor": "Completed (Supervisors)",
+    "column_completion": "Completion",
+    "duration_value": "{{minutes}} minutes",
+    "status_no_data": "No data yet",
+    "status_good": "Good",
+    "status_in_progress": "In progress",
+    "status_low": "Low"
+  }
+}

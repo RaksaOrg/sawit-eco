@@ -1,0 +1,154 @@
+{
+  "page_title": "Executive Summary",
+  "breadcrumb": "Home",
+  "subtitle": "{{tenant}}{{location}} · Period: {{period}}",
+  "reload_tooltip": "Reload data",
+  "reload": "Reload",
+  "filter_title": "Filter Period",
+  "filter_period_label": "Period",
+  "period_today": "Today",
+  "period_7d": "7 Days",
+  "period_30d": "30 Days",
+  "kpi_section_title": "Key Performance Indicators",
+  "kpi": {
+    "production": {
+      "title": "FFB Production",
+      "subtitle": "Total harvest this period",
+      "status_empty": "No data",
+      "status_reports": "{{total}} reports received",
+      "description": "Accumulated fresh fruit bunch production from supervisor reports in the selected period."
+    },
+    "harvest_productivity": {
+      "title": "Harvest Productivity",
+      "subtitle": "Target above 200 Kg/WD",
+      "status_empty": "No data",
+      "status_above": "Above target",
+      "status_below": "Below target",
+      "description": "Harvest output per workday. The higher it is, the more efficient the harvest team.",
+      "target_label": "Target"
+    },
+    "maintenance_productivity": {
+      "title": "Maintenance Productivity",
+      "subtitle": "Target above 1.2 Ha/WD",
+      "status_empty": "No data",
+      "status_above": "Above target",
+      "status_below": "Below target",
+      "description": "Maintenance area completed per workday in the selected period.",
+      "target_label": "Target"
+    },
+    "rotation": {
+      "title": "Harvest Rotation Status",
+      "subtitle": "Overdue blocks above 14 days",
+      "status_action": "Action required",
+      "status_controlled": "Under control",
+      "description": "{{active}} of {{total}} blocks are within the ideal 7–14 day rotation."
+    },
+    "tasks": {
+      "title": "Active Field Tasks",
+      "subtitle": "Assigned & in progress",
+      "status_overdue": "{{total}} overdue",
+      "status_none": "No overdue",
+      "description": "Field work orders not yet completed across all blocks."
+    },
+    "diagnosis": {
+      "title": "High-Risk Diagnosis",
+      "subtitle": "High & critical risk",
+      "status_total": "{{total}} total diagnoses",
+      "description": "Agronomy findings that require priority follow-up."
+    },
+    "learning": {
+      "title": "Learning Completion",
+      "subtitle": "{{total}} modules available",
+      "status_progress": "Field team progress",
+      "description": "Percentage of learning materials completed by supervisors and workers.",
+      "status_empty": "No data"
+    },
+    "orders": {
+      "title": "Product Order Value",
+      "subtitle": "Estate commerce",
+      "status_gap": "{{total}} open product gaps",
+      "status_pending": "{{pending}} pending approval · {{active}} active products",
+      "description": "Value of agricultural input orders recorded for this tenant."
+    }
+  },
+  "rotation_card_title": "Harvest Rotation Status per Block",
+  "rotation_card_subtitle": "Ideal harvest cycle 7–14 days",
+  "rotation_empty_title": "No Block Data Yet",
+  "rotation_empty_subtitle": "Block master data is not available for this tenant.",
+  "rotation_no_data": "No harvest rotation data yet",
+  "rotation_table_accessible_name": "Harvest rotation per block table",
+  "attention_card_title": "Needs Attention",
+  "attention_card_subtitle": "Priority operational follow-up",
+  "attention_empty_title": "No Priority Issues",
+  "attention_empty_subtitle": "No overdue tasks, high-risk diagnoses, or pending orders.",
+  "column_block_code": "Block Code",
+  "column_last_harvest": "Last Harvest",
+  "column_days_since_harvest": "Days Since Harvest",
+  "column_rotation_status": "Rotation Status",
+  "intelligence": {
+    "title": "Input Price Anomaly",
+    "subtitle": "Supply Chain Intelligence",
+    "section_title": "Supply Chain Intelligence & Price Anomaly",
+    "status_spike": "{{total}} price anomalies detected (>20%)",
+    "status_stable": "Input prices within fair median",
+    "description": "Monitoring price spikes for fertilizers and pesticides against market median.",
+    "pdp_safe": "Farmer & Supplier Data Protected under PDP Law (Masked Alias)",
+    "empty_title": "No Price Anomalies",
+    "empty_subtitle": "All input quotations are within normal deviation (<20%)."
+  },
+  "pdp": {
+    "title": "PDP Compliance Audit",
+    "subtitle": "Personal Data Protection Law",
+    "scale": "Logs",
+    "status_verified": "0 PII leaks",
+    "description": "Total audit events recorded for masked smallholder/supplier data."
+  },
+  "funnel": {
+    "title": "Recommendation Conversion",
+    "subtitle": "Closed-loop diagnosis to purchase",
+    "repeat_title": "Repeat Purchase Rate",
+    "repeat_subtitle": "Input procurement retention",
+    "status_conversion": "{{rate}}% diagnosis to order conversion",
+    "status_repeat": "{{rate}}% repeat procurement rate",
+    "description": "Measurement of closed-loop funnel converting agronomic advice into official purchases."
+  },
+  "impact": {
+    "section_title": "Market Transparency & Middleman Margin Elimination",
+    "subtitle": "Real market price benchmarks vs local middleman markup",
+    "savings_title": "Estimated Smallholder Savings",
+    "savings_subtitle": "Supply chain cut savings",
+    "status_savings": "Savings from bypassing tengkulak markup",
+    "description": "Economic value preserved for smallholders by procuring official registered inputs.",
+    "empty_title": "No Market Benchmarks Yet",
+    "empty_subtitle": "Regional market price benchmark data is being compiled.",
+    "column_commodity": "Commodity / Input",
+    "column_region": "Benchmark District",
+    "column_official": "Official Ref Price",
+    "column_tengkulak": "Tengkulak Offer",
+    "column_margin": "Middleman Margin Cut",
+    "column_savings": "Farmer Savings"
+  },
+  "launchpad": {
+    "insights": "Insights",
+    "quick_access": "Quick Access",
+    "market_intelligence": "Market Intelligence",
+    "hk_present": "Man-days present",
+    "harvest_kg": "Kg harvested",
+    "awaiting_approval": "Awaiting approval",
+    "block_prefix": "Block {{code}}",
+    "harvest_info": "Harvest: {{date}} ({{days}})",
+    "price_deviation": "+{{value}}% price deviation",
+    "quick": {
+      "task_title": "Create New Task",
+      "task_sub": "Assign supervisors & workers",
+      "attendance_title": "Attendance & Man-days",
+      "attendance_sub": "Verify supervisor attendance",
+      "agronomy_title": "Agronomy Diagnosis",
+      "agronomy_sub": "Pests, diseases & deficiencies",
+      "catalog_title": "Farm Supplies Catalog",
+      "catalog_sub": "Buy fertilizer & tools",
+      "reports_title": "Report Recap",
+      "reports_sub": "Daily operational table"
+    }
+  }
+}

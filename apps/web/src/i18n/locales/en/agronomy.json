@@ -1,0 +1,57 @@
+{
+  "diagnose": {
+    "title": "Plant & Pest Diagnosis",
+    "risk_critical": "Critical Risk",
+    "risk_high": "High Risk",
+    "risk_medium": "Medium Risk",
+    "risk_low": "Low Risk",
+    "action_immediate": "Action Today",
+    "action_future": "Action in 7-14 Days",
+    "action_new_diagnosis": "New Diagnosis",
+    "diagnosis_details": "Diagnosis & Recommendation Details",
+    "dosage_label": "Dosage (Kg/Ha)",
+    "select_block": "Select Estate Block",
+    "select_product": "Target Input / SKU",
+    "unlisted_product": "Unlisted Product (Product Gap)",
+    "symptoms_label": "Symptoms / Field Conditions",
+    "run_diagnosis_btn": "Run AI Diagnosis",
+    "added_to_cart_success": "Product successfully added to cart",
+    "symptoms_placeholder": "Example: Lower fronds yellowing with orange spots, young leaves drying...",
+    "another_diagnosis": "Another Diagnosis",
+    "default_block_fallback": "Block A1 (25 Ha)"
+  },
+  "card": {
+    "product_rec": "Official Input Recommendation",
+    "reason": "Recommendation Reason",
+    "est_block": "Estimated Block Needs (Ha)",
+    "est_cost": "Estimated Cost",
+    "disclaimer": "Sesuaikan dengan hasil analisa daun/tanah dan label resmi produk.",
+    "add_to_cart": "Add to Cart"
+  },
+  "gap": {
+    "title": "Product Gap Alert",
+    "desc": "Agricultural input is not registered in estate catalog. Gap noted for procurement team.",
+    "banner_title": "PRODUCT GAP DETECTED",
+    "unregistered_sku": "SKU not registered in tenant catalog."
+  },
+  "list": {
+    "page_title": "Agronomy Diagnosis",
+    "breadcrumb": "Agronomy",
+    "subtitle": "{{tenant}} · {{total}} field diagnosis records",
+    "filter_title": "Filter Diagnosis",
+    "filter_risk_label": "Risk Level",
+    "search_placeholder": "Search block, supervisor, diagnosis…",
+    "risk_label": "Risk",
+    "risk_low": "Low",
+    "risk_medium": "Medium",
+    "risk_high": "High",
+    "risk_critical": "Critical",
+    "column_symptoms": "Symptoms",
+    "column_diagnosis": "Diagnosis",
+    "column_follow_up": "Follow-up",
+    "empty_title": "No Diagnosis Yet",
+    "empty_subtitle": "Diagnoses from photos and symptoms sent by field supervisors will appear here.",
+    "no_data": "No diagnosis matches the filter",
+    "table_accessible_name": "Agronomy diagnosis table"
+  }
+}

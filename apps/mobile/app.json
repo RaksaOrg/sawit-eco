@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "SawitEco",
+    "slug": "sawit-ecosystem",
+    "scheme": "sawit-ecosystem",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.sawit.ecosystem.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/AdaptiveIcon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "ios": {
+      "bundleIdentifier": "com.sawit.ecosystem.app",
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-font"
+    ],
+    "icon": "./assets/Launcher.png"
+  }
+}

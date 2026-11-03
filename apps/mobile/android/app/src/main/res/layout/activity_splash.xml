@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@color/splashscreen_background">
+  <ImageView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:contentDescription="@null"
+    android:importantForAccessibility="no"
+    android:scaleType="centerCrop"
+    android:src="@drawable/splash_art" />
+  <ImageView
+    android:id="@+id/splash_logo"
+    android:layout_width="1dp"
+    android:layout_height="1dp"
+    android:contentDescription="@string/app_name"
+    android:scaleType="fitCenter"
+    android:src="@drawable/splash_logo" />
+  <TextView
+    android:id="@+id/splash_title_sawit"
+    android:layout_width="1dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:text="@string/splash_title_sawit"
+    android:textColor="#02653E"
+    android:textStyle="bold" />
+  <TextView
+    android:id="@+id/splash_title_ecosystem"
+    android:layout_width="1dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:text="@string/splash_title_ecosystem"
+    android:textColor="#02653E"
+    android:textStyle="bold" />
+  <TextView
+    android:id="@+id/splash_tagline"
+    android:layout_width="1dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:lineSpacingExtra="2dp"
+    android:text="@string/splash_tagline"
+    android:textColor="@color/splash_tagline"
+    android:textStyle="normal" />
+  <FrameLayout
+    android:id="@+id/splash_progress_track"
+    android:layout_width="1dp"
+    android:layout_height="1dp"
+    android:importantForAccessibility="no"
+    android:background="@drawable/bg_splash_progress_track">
+    <View
+      android:id="@+id/splash_progress_fill"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@drawable/bg_splash_progress_fill" />
+  </FrameLayout>
+  <TextView
+    android:id="@+id/splash_footer"
+    android:layout_width="1dp"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:shadowColor="#66000000"
+    android:shadowDx="0"
+    android:shadowDy="1"
+    android:shadowRadius="3"
+    android:text="@string/splash_footer"
+    android:textColor="#FFFFFF" />
+</FrameLayout>

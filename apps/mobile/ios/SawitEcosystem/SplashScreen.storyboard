@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24093.7" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="SplashViewController">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24053.1"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="SplashScene">
+            <objects>
+                <viewController storyboardIdentifier="SplashScreenViewController" id="SplashViewController" sceneMemberID="viewController">
+                    <view key="view" userInteractionEnabled="NO" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="SplashView">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashArt" translatesAutoresizingMaskIntoConstraints="NO" id="splashArt">
+                                <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SplashLogo" translatesAutoresizingMaskIntoConstraints="NO" id="brandLogo">
+                                <rect key="frame" x="145.4" y="157.0" width="102.2" height="95.9"/>
+                                <accessibility key="accessibilityConfiguration" label="SawitEco Logo"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="brandLogo" secondAttribute="height" multiplier="956:897" id="c-logo-aspect"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sawit" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="splashTitleSawit">
+                                <rect key="frame" x="68.8" y="263" width="255.4" height="48"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="40"/>
+                                <color key="textColor" red="0.00784313725490196" green="0.396078431372549" blue="0.24313725490196078" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Ecosystem" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="splashTitleEcosystem">
+                                <rect key="frame" x="68.8" y="313" width="255.4" height="43"/>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="36"/>
+                                <color key="textColor" red="0.00784313725490196" green="0.396078431372549" blue="0.24313725490196078" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Digital Solution for&#10;Sustainable Palm Oil Business" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="splashTagline">
+                                <rect key="frame" x="78.6" y="369.0" width="235.8" height="38.5"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                <color key="textColor" red="0.27843137254901962" green="0.33333333333333331" blue="0.41176470588235292" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view clipsSubviews="YES" tag="10" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="progressTrack">
+                                <rect key="frame" x="157.5" y="460.9" width="78" height="6"/>
+                                <color key="backgroundColor" red="0.78823529411764703" green="0.89411764705882357" blue="0.83921568627450982" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="6" id="c-prog-h"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Grow Together for a Greener Tomorrow" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="1" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="splashFooter">
+                                <rect key="frame" x="68.8" y="771.5" width="255.4" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <shadow key="shadow">
+                                    <color key="shadowColor" white="0.0" alpha="0.40000000000000002" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <size key="shadowOffset" width="0.0" height="1"/>
+                                </shadow>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="splashArt" firstAttribute="leading" secondItem="SplashView" secondAttribute="leading" id="c-bg-leading"/>
+                            <constraint firstItem="splashArt" firstAttribute="trailing" secondItem="SplashView" secondAttribute="trailing" id="c-bg-trailing"/>
+                            <constraint firstItem="splashArt" firstAttribute="top" secondItem="SplashView" secondAttribute="top" id="c-bg-top"/>
+                            <constraint firstItem="splashArt" firstAttribute="bottom" secondItem="SplashView" secondAttribute="bottom" id="c-bg-bottom"/>
+                            <constraint firstItem="brandLogo" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-logo-x"/>
+                            <constraint firstItem="brandLogo" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.24" id="c-logo-y"/>
+                            <constraint firstItem="brandLogo" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.26" id="c-logo-w"/>
+                            <constraint firstItem="splashTitleSawit" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-title-sawit-x"/>
+                            <constraint firstItem="splashTitleSawit" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.338" id="c-title-sawit-y"/>
+                            <constraint firstItem="splashTitleSawit" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.65" id="c-title-sawit-w"/>
+                            <constraint firstItem="splashTitleEcosystem" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-title-eco-x"/>
+                            <constraint firstItem="splashTitleEcosystem" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.375" id="c-title-eco-y"/>
+                            <constraint firstItem="splashTitleEcosystem" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.65" id="c-title-eco-w"/>
+                            <constraint firstItem="splashTagline" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-tag-x"/>
+                            <constraint firstItem="splashTagline" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.455" id="c-tag-y"/>
+                            <constraint firstItem="splashTagline" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.60" id="c-tag-w"/>
+                            <constraint firstItem="progressTrack" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-prog-x"/>
+                            <constraint firstItem="progressTrack" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.548" id="c-prog-y"/>
+                            <constraint firstItem="progressTrack" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.198" id="c-prog-w"/>
+                            <constraint firstItem="splashFooter" firstAttribute="centerX" secondItem="SplashView" secondAttribute="trailing" multiplier="0.5" id="c-foot-x"/>
+                            <constraint firstItem="splashFooter" firstAttribute="centerY" secondItem="SplashView" secondAttribute="bottom" multiplier="0.918" id="c-foot-y"/>
+                            <constraint firstItem="splashFooter" firstAttribute="width" secondItem="SplashView" secondAttribute="width" multiplier="0.65" id="c-foot-w"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="SplashPresenter" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="0.0" y="0.0"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="SplashArt" width="666" height="1495"/>
+        <image name="SplashLogo" width="1536" height="1024"/>
+    </resources>
+</document>

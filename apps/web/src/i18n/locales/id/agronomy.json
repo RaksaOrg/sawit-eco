@@ -1,0 +1,57 @@
+{
+  "diagnose": {
+    "title": "Diagnosa Tanaman & Hama",
+    "risk_critical": "Risiko Kritis",
+    "risk_high": "Risiko Tinggi",
+    "risk_medium": "Risiko Sedang",
+    "risk_low": "Risiko Rendah",
+    "action_immediate": "Tindakan Hari Ini",
+    "action_future": "Tindakan 7-14 Hari Ke Depan",
+    "action_new_diagnosis": "Diagnosa Baru",
+    "diagnosis_details": "Detail Diagnosa & Rekomendasi",
+    "dosage_label": "Dosis (Kg/Ha)",
+    "select_block": "Pilih Blok Kebun",
+    "select_product": "Target Sarana Produksi / SKU",
+    "unlisted_product": "Produk Tidak Terdaftar (Product Gap)",
+    "symptoms_label": "Gejala / Kondisi Lapangan",
+    "run_diagnosis_btn": "Proses Diagnosa AI",
+    "added_to_cart_success": "Produk berhasil ditambahkan ke keranjang belanja",
+    "symptoms_placeholder": "Contoh: Daun pelepah bawah menguning bercak jingga, daun muda mengering...",
+    "another_diagnosis": "Diagnosa Lain",
+    "default_block_fallback": "Blok A1 (25 Ha)"
+  },
+  "card": {
+    "product_rec": "Rekomendasi Sarana Produksi Resmi",
+    "reason": "Alasan Rekomendasi",
+    "est_block": "Estimasi Kebutuhan Blok (Ha)",
+    "est_cost": "Estimasi Biaya",
+    "disclaimer": "Sesuaikan dengan hasil analisa daun/tanah dan label resmi produk.",
+    "add_to_cart": "Tambah ke Keranjang"
+  },
+  "gap": {
+    "title": "Kesenjangan Produk (PRODUCT GAP)",
+    "desc": "Kebutuhan sarana produksi belum terdaftar dalam katalog resmi tenant. Permintaan telah dicatat untuk tim pengadaan.",
+    "banner_title": "PRODUCT GAP DETECTED",
+    "unregistered_sku": "SKU tidak terdaftar di katalog tenant."
+  },
+  "list": {
+    "page_title": "Diagnosa Agronomi",
+    "breadcrumb": "Agronomi",
+    "subtitle": "{{tenant}} · {{total}} riwayat diagnosa lapangan",
+    "filter_title": "Filter Diagnosa",
+    "filter_risk_label": "Tingkat Risiko",
+    "search_placeholder": "Cari blok, mandor, diagnosa…",
+    "risk_label": "Risiko",
+    "risk_low": "Rendah",
+    "risk_medium": "Sedang",
+    "risk_high": "Tinggi",
+    "risk_critical": "Kritis",
+    "column_symptoms": "Gejala",
+    "column_diagnosis": "Diagnosa",
+    "column_follow_up": "Tindak Lanjut",
+    "empty_title": "Belum Ada Diagnosa",
+    "empty_subtitle": "Diagnosa dari foto dan gejala yang dikirim mandor akan tampil di sini.",
+    "no_data": "Tidak ada diagnosa yang cocok dengan filter",
+    "table_accessible_name": "Tabel diagnosa agronomi"
+  }
+}

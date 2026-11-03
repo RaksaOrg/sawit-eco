@@ -1,0 +1,83 @@
+{
+  "button": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "retry": "Retry",
+    "back": "Back"
+  },
+  "state": {
+    "loading": "Loading data...",
+    "empty": "No data available",
+    "error": "A system error occurred",
+    "no_value": "—"
+  },
+  "offline": {
+    "queued": "items pending synchronization",
+    "synced": "All data successfully synchronized"
+  },
+  "action": {
+    "create_task": "Create Task",
+    "reload": "Reload",
+    "add": "Add",
+    "save": "Save",
+    "search": "Search",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "filter": {
+    "all_status": "All Statuses",
+    "all_risk": "All Risks",
+    "all_category": "All Categories",
+    "all_activity": "All Activities",
+    "all": "All"
+  },
+  "column": {
+    "date": "Date",
+    "block": "Block",
+    "mandor": "Field Supervisor",
+    "status": "Status",
+    "activity": "Activity",
+    "category": "Category",
+    "production": "Production",
+    "product": "Product",
+    "price": "Price",
+    "stock": "Stock",
+    "action": "Action"
+  },
+  "message": {
+    "required_fields": "All required fields must be filled",
+    "saved": "Data successfully saved",
+    "save_failed": "Failed to save data"
+  },
+  "design_system": "SAP Fiori Horizon",
+  "nav": {
+    "main": "Main navigation",
+    "logout": "Sign Out",
+    "menu_tooltip": "Navigation menu",
+    "dashboard": "Executive Summary",
+    "group_operations": "Field Operations",
+    "attendance": "Attendance & WD",
+    "employees": "Employee Directory",
+    "tasks": "Field Tasks",
+    "reports": "Report Recap",
+    "supervisors": "Supervisor Performance",
+    "group_agronomy": "Agronomy",
+    "agronomy": "Agronomy Diagnosis",
+    "group_learning": "Learning",
+    "learning": "Learning Materials",
+    "group_commerce": "Commerce",
+    "catalog": "Product Catalog",
+    "orders": "Incoming Orders",
+    "approvals": "Approval Inbox"
+  },
+  "auth_required": {
+    "title": "Authentication Required",
+    "desc_tasks": "Please log in first to access the Field Tasks module.",
+    "desc_agronomy": "Please log in first to access Agronomy Diagnosis data.",
+    "desc_supervisors": "Please log in first to access supervisor performance data.",
+    "desc_reports": "Please log in first to access Report Recap data."
+  }
+}

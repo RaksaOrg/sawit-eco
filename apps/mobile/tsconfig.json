@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "paths": {
+      "@/*": [
+        "../*"
+      ],
+      "@sawit/contracts": [
+        "../../packages/contracts/src/index.ts"
+      ],
+      "@sawit/contracts/*": [
+        "../../packages/contracts/src/*"
+      ]
+    },
+    "esModuleInterop": true,
+    "types": [
+      "jest"
+    ]
+  },
+  "include": [
+    "App.tsx",
+    "src/**/*"
+  ],
+  "extends": "expo/tsconfig.base"
+}

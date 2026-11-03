@@ -1,0 +1,8 @@
+<resources>
+  <string name="app_name">SawitEco</string>
+  <string name="splash_title_sawit">Sawit</string>
+  <string name="splash_title_ecosystem">Ecosystem</string>
+  <string name="splash_tagline">Digital Solution for\nSustainable Palm Oil Business</string>
+  <string name="splash_footer">Grow Together for a Greener Tomorrow</string>
+  <string name="expo_system_ui_user_interface_style" translatable="false">light</string>
+</resources>

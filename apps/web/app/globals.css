@@ -1,0 +1,421 @@
+/* SAP Fiori (sap_horizon / sap_fiori_3) foundation — strictly uses UI5 theme tokens only. */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--sapBackgroundColor);
+  margin: 0;
+  color: var(--sapTextColor);
+  font-family: var(--sapFontFamily, '72', Arial, sans-serif);
+  font-size: var(--sapFontSize);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   App Shell (authenticated routes) — SAP Cloud Platform Launchpad Layout
+   ========================================================================== */
+.fiori-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  background: var(--sapBackgroundColor);
+  overflow: hidden;
+}
+
+.fiori-header-group {
+  flex-shrink: 0;
+  z-index: 10;
+  background: var(--sapShellColor);
+  box-shadow: var(--sapShell_Shadow);
+}
+
+.fiori-header-group ui5-shellbar {
+  --sapShell_Background: var(--sapShellColor);
+  background: var(--sapShellColor);
+  color: var(--sapShell_TextColor);
+}
+
+.fiori-anchor-bar {
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  background: var(--sapShellColor);
+  border-top: 1px solid var(--sapShell_BorderColor);
+}
+
+.fiori-anchor-tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.fiori-anchor-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.fiori-anchor-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 4px solid transparent;
+  color: var(--sapShell_Navigation_TextColor);
+  font-family: inherit;
+  font-size: var(--sapFontSmallSize);
+  font-weight: 500;
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.fiori-anchor-tab:hover {
+  color: var(--sapShell_TextColor);
+  border-bottom-color: var(--sapShell_BorderColor);
+}
+.fiori-anchor-tab--active {
+  color: var(--sapShell_TextColor);
+  border-bottom-color: var(--sapShell_Navigation_SelectedColor);
+  font-weight: 700;
+}
+
+.fiori-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  background: var(--sapBackgroundColor);
+}
+
+.fiori-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  background: var(--sapBackgroundColor);
+}
+
+/* ==========================================================================
+   SAP Cloud Platform Launchpad Floorplan — 100% Theme Tokens
+   ========================================================================== */
+.launchpad-canvas {
+  padding: 1.25rem 1.5rem 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.launchpad-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.launchpad-toolbar-left,
+.launchpad-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.launchpad-grid {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.launchpad-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.launchpad-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.launchpad-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.launchpad-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--sapTextColor);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+/* Launchpad Metric / Pipeline Tiles */
+.launchpad-tiles-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.launchpad-tile {
+  background: var(--sapTile_Background);
+  border: 1px solid var(--sapTile_BorderColor);
+  border-radius: var(--sapTile_BorderCornerRadius, var(--sapElement_BorderCornerRadius));
+  padding: 1rem;
+  box-shadow: var(--sapContent_Shadow0);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 120px;
+  box-sizing: border-box;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.launchpad-tile:hover,
+.launchpad-tile:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--sapContent_Shadow1);
+  border-color: var(--sapTile_Interactive_BorderColor);
+  background: var(--sapTile_Hover_Background);
+  outline: none;
+}
+
+.launchpad-tile-title {
+  font-size: var(--sapFontSmallSize);
+  font-weight: 600;
+  color: var(--sapTile_TitleTextColor);
+  line-height: 1.25;
+}
+
+.launchpad-tile-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--sapHighlightColor);
+  line-height: 1.1;
+  margin: 0.5rem 0;
+}
+
+.launchpad-tile-sub {
+  font-size: 0.75rem;
+  color: var(--sapTile_TextColor);
+}
+
+.launchpad-status-bad {
+  color: var(--sapErrorColor);
+  font-weight: 600;
+}
+
+.launchpad-status-warn {
+  color: var(--sapWarningColor);
+  font-weight: 600;
+}
+
+/* Cards Row */
+.launchpad-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.launchpad-card {
+  background: var(--sapTile_Background);
+  border: 1px solid var(--sapTile_BorderColor);
+  border-radius: var(--sapElement_BorderCornerRadius);
+  box-shadow: var(--sapContent_Shadow0);
+}
+
+/* Quick Access Links */
+.launchpad-quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.launchpad-link-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: var(--sapTile_Background);
+  border: 1px solid var(--sapTile_BorderColor);
+  border-radius: var(--sapElement_BorderCornerRadius);
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  box-shadow: var(--sapContent_Shadow0);
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.launchpad-link-item:hover,
+.launchpad-link-item:focus-visible {
+  border-color: var(--sapTile_Interactive_BorderColor);
+  background: var(--sapTile_Hover_Background);
+  transform: translateX(2px);
+  outline: none;
+}
+
+.launchpad-link-icon {
+  font-size: 1.25rem;
+  color: var(--sapHighlightColor);
+  flex-shrink: 0;
+}
+
+.launchpad-link-text strong {
+  display: block;
+  font-size: var(--sapFontSmallSize);
+  font-weight: 600;
+  color: var(--sapTextColor);
+}
+
+.launchpad-link-text small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--sapContent_LabelColor);
+  margin-top: 0.125rem;
+}
+
+@media (max-width: 1024px) {
+  .launchpad-grid {
+    flex-direction: column;
+  }
+  .launchpad-sidebar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .launchpad-canvas {
+    padding: 1rem 0.75rem;
+  }
+  .launchpad-tiles-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .fiori-anchor-bar {
+    padding: 0 0.5rem;
+  }
+}
+
+/* ==========================================================================
+   Auth (public routes) — SAP Fiori logon layout (100% Theme Tokens)
+   ========================================================================== */
+.auth-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--sapBackgroundColor);
+  box-sizing: border-box;
+}
+
+.fiori-bg-wave {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.auth-header,
+.auth-main,
+.auth-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.auth-header {
+  padding: 1rem 1rem 0;
+}
+
+.auth-logo {
+  display: block;
+  height: 48px;
+  width: auto;
+}
+
+.auth-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  min-height: 0;
+}
+
+.auth-form {
+  width: 288px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.auth-form > * {
+  width: 100%;
+}
+
+.auth-demo {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--sapGroup_ContentBorderColor);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.auth-demo-title {
+  font-size: var(--sapFontSmallSize);
+  color: var(--sapContent_LabelColor);
+  text-align: center;
+  margin-bottom: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.auth-footer {
+  text-align: right;
+  padding: 1rem;
+  color: var(--sapContent_LabelColor);
+  font-size: var(--sapFontSmallSize);
+}
+
+@media (max-height: 429px) {
+  .auth-header,
+  .auth-footer {
+    display: none;
+  }
+}
+
+/* Fiori Icon Gallery */
+.fiori-icon-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.fiori-icon-gallery-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 0.5rem;
+  background: var(--sapTile_Background);
+  border: 1px solid var(--sapTile_BorderColor);
+  border-radius: var(--sapElement_BorderCornerRadius);
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.fiori-icon-gallery-label {
+  font-size: var(--sapFontSmallSize);
+  color: var(--sapTextColor);
+  word-break: break-all;
+}

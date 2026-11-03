@@ -1,0 +1,83 @@
+{
+  "button": {
+    "save": "Simpan",
+    "cancel": "Batal",
+    "submit": "Kirim",
+    "approve": "Setujui",
+    "reject": "Tolak",
+    "retry": "Coba Lagi",
+    "back": "Kembali"
+  },
+  "state": {
+    "loading": "Memuat data...",
+    "empty": "Belum ada data",
+    "error": "Terjadi kesalahan sistem",
+    "no_value": "—"
+  },
+  "offline": {
+    "queued": "data menunggu sinkronisasi",
+    "synced": "Semua data berhasil disinkronkan"
+  },
+  "action": {
+    "create_task": "Buat Tugas",
+    "reload": "Muat Ulang",
+    "add": "Tambah",
+    "save": "Simpan",
+    "search": "Cari",
+    "cancel": "Batal",
+    "close": "Tutup"
+  },
+  "filter": {
+    "all_status": "Semua Status",
+    "all_risk": "Semua Risiko",
+    "all_category": "Semua Kategori",
+    "all_activity": "Semua Aktivitas",
+    "all": "Semua"
+  },
+  "column": {
+    "date": "Tanggal",
+    "block": "Blok",
+    "mandor": "Mandor",
+    "status": "Status",
+    "activity": "Aktivitas",
+    "category": "Kategori",
+    "production": "Produksi",
+    "product": "Produk",
+    "price": "Harga",
+    "stock": "Stok",
+    "action": "Aksi"
+  },
+  "message": {
+    "required_fields": "Semua field wajib diisi",
+    "saved": "Data berhasil disimpan",
+    "save_failed": "Gagal menyimpan data"
+  },
+  "design_system": "SAP Fiori Horizon",
+  "nav": {
+    "main": "Navigasi utama",
+    "logout": "Keluar",
+    "menu_tooltip": "Menu navigasi",
+    "dashboard": "Ringkasan Eksekutif",
+    "group_operations": "Operasional Lapangan",
+    "attendance": "Presensi & HK",
+    "employees": "Daftar Karyawan",
+    "tasks": "Tugas Lapangan",
+    "reports": "Rekap Laporan",
+    "supervisors": "Performa Mandor",
+    "group_agronomy": "Agronomi",
+    "agronomy": "Diagnosa Agronomi",
+    "group_learning": "Pembelajaran",
+    "learning": "Materi Pembelajaran",
+    "group_commerce": "Perdagangan",
+    "catalog": "Katalog Produk",
+    "orders": "Pesanan Masuk",
+    "approvals": "Inbox Persetujuan"
+  },
+  "auth_required": {
+    "title": "Autentikasi Diperlukan",
+    "desc_tasks": "Silakan login terlebih dahulu untuk mengakses modul Tugas Lapangan.",
+    "desc_agronomy": "Silakan login terlebih dahulu untuk mengakses data Diagnosa Agronomi.",
+    "desc_supervisors": "Silakan login terlebih dahulu untuk mengakses data performa mandor.",
+    "desc_reports": "Silakan login terlebih dahulu untuk mengakses data Rekap Laporan."
+  }
+}

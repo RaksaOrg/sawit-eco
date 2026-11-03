@@ -1,0 +1,13 @@
+node_modules
+coverage
+dist
+build
+.expo
+android
+ios/Pods
+.opencode
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+next-env.d.ts
