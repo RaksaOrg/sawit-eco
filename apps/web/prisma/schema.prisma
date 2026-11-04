@@ -31,6 +31,7 @@ model Tenant {
   productivity          ProductivitySnapshot[]
   pdpAuditLogs          PdpAuditLog[]
   agentRuns             AgentRun[]
+  modelTriggers         ModelTrigger[]
   priceAnomalies        PriceAnomaly[]
   suppliers             Supplier[]
   priceBooks            PriceBook[]
@@ -444,6 +445,25 @@ model PriceAnomaly {
   detectedAt          DateTime @default(now())
 
   @@index([tenantId, sku])
+}
+
+model ModelTrigger {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  traceId     String
+  route       String
+  provider    String
+  model       String
+  operation   String
+  status      String
+  durationMs  Int
+  errorCode   String?
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId, traceId])
+  @@index([tenantId, createdAt])
+  @@index([route, status])
 }
 
 model AgentRun {

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth';
 import { resolveLivenessConfig, verifyLiveness } from '@/src/core/ai/liveness';
+import { recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -54,6 +56,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const startedAt = Date.now();
+  const traceId = request.headers.get('x-request-id') || randomUUID();
+  let inferenceSucceeded = false;
   try {
     const frames = await Promise.all(
       (files as File[]).map(async (file) => ({
@@ -62,6 +67,17 @@ export async function POST(request: NextRequest) {
       })),
     );
     const result = await verifyLiveness(frames, challengeOrder, config);
+    inferenceSucceeded = true;
+    await recordModelTrigger({
+      tenantId: auth.tenantId,
+      traceId,
+      route: '/api/verification/liveness',
+      provider: 'vision-inference',
+      model: config.model,
+      operation: 'LIVENESS_VERIFICATION',
+      status: 'SUCCEEDED',
+      startedAt,
+    });
     if (!result.isLive || !attendanceAction) {
       return NextResponse.json({ success: true, data: result });
     }
@@ -150,6 +166,18 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (!inferenceSucceeded)
+      await recordModelTrigger({
+        tenantId: auth.tenantId,
+        traceId,
+        route: '/api/verification/liveness',
+        provider: 'vision-inference',
+        model: config.model,
+        operation: 'LIVENESS_VERIFICATION',
+        status: 'FAILED',
+        startedAt,
+        errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+      });
     const message = error instanceof Error ? error.message : '';
     if (['ALREADY_CHECKED_IN', 'CHECK_IN_REQUIRED', 'ALREADY_CHECKED_OUT'].includes(message)) {
       return NextResponse.json(
