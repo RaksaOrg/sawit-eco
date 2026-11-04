@@ -4,6 +4,7 @@ import path from 'path';
 import { queryMetaInferenceEngine } from '@/src/core/ai/inference';
 import { queryMetaVisionInference } from '@/src/core/ai/vision';
 import { isModelMockEnabled } from '@/src/core/ai/mock';
+import { logServerError } from './logger';
 
 export type AgentName = 'supervisor' | 'agronomy' | 'manager';
 
@@ -98,7 +99,7 @@ export async function runAgent(
 
       return { agent, reply };
     } catch (error) {
-      console.error('Meta vision gagal, fallback ke OpenAI', error);
+      logServerError('Meta vision gagal, fallback ke OpenAI', error);
     }
     // Fallback to OpenAI if Meta Vision provider dies
     const prompt = getPrompt(agent, tenant);
@@ -116,7 +117,7 @@ export async function runAgent(
       });
       return { agent, reply: result.text };
     } catch (error) {
-      console.error('Meta inference gagal, fallback ke OpenAI', error);
+      logServerError('Meta inference gagal, fallback ke OpenAI', error);
     }
   }
 

@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireTenant } from '@/lib/auth';
 import { sendWhatsApp } from '@/lib/whatsapp';
+import { logServerError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
       .replace(/postgres(?:ql)?:\/\/\S+/gi, '[redacted database url]')
       .replace(/Bearer\s+\S+/gi, 'Bearer [redacted]')
       .slice(0, 500);
-    console.error('[GET_ERROR]', {
+    logServerError('[GET_ERROR]', {
       stage,
       statusFilter: statusFilter || undefined,
       requestId: req.headers.get('x-request-id') || undefined,
@@ -171,8 +172,8 @@ export async function POST(req: NextRequest) {
         `Tenggat: ${targetDateFormatted}\n` +
         (description ? `Instruksi: ${description}\n` : '') +
         `\nKetik balasan saat selesai, contoh: *selesai tugas ${kodeTugas} hasil ${targetQuantity}*`;
-      await sendWhatsApp(mandorUser.waNumber, msg).catch((e) =>
-        console.error('Gagal kirim WA tugas', e),
+      await sendWhatsApp(mandorUser.waNumber, msg).catch((error) =>
+        logServerError('Gagal kirim WA tugas', error),
       );
     }
 

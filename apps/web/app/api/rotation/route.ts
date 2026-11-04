@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentTenant } from '@/lib/tenant';
 import { getRotasiStatusList } from '@/lib/kpi';
+import { logServerError } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,7 +41,7 @@ export async function GET(_request: Request) {
       rotasiStatusList,
     });
   } catch (error) {
-    console.error('Rotasi Panen API Error:', error);
+    logServerError('Rotasi Panen API Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

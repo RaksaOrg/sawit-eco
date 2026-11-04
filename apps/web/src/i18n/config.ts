@@ -30,10 +30,7 @@ const namespaces = [
 
 export function handleMissingKey(key: string): string {
   const message = `[i18n] Missing translation key: ${key}`;
-  if (process.env.NODE_ENV === 'production') {
-    console.error(message);
-    return key;
-  }
+  if (process.env.NODE_ENV === 'production') return key;
   throw new Error(message);
 }
 

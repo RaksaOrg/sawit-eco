@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
+import { logServerError } from '@/lib/logger';
 import { downloadMedia, sendWhatsApp } from '@/lib/whatsapp';
 import { runAgent } from '@/lib/agent';
 import { maskPii } from '@/src/core/privacy/pdp-guard';
@@ -139,7 +140,7 @@ export async function POST(req: NextRequest) {
         image = { mime: media.mime, base64: media.base64 };
         fotoUrl = `/uploads/agronomy/${fileName}`;
       } catch (e) {
-        console.error('Gagal unduh media WhatsApp', e);
+        logServerError('Gagal unduh media WhatsApp', e);
       }
     }
 
@@ -247,7 +248,7 @@ export async function POST(req: NextRequest) {
             `\n\n✅ Tugas ${candidateKode || resolution.id} di blok ${resolution.blokKode} selesai. Target: ${resolution.targetKuantitas} ${resolution.satuanTarget} | Realisasi: ${realisasi} ${resolution.satuanTarget}`;
         }
       } catch (e) {
-        console.error(e);
+        logServerError(e);
       }
       cleanReply =
         reply.split('[JSON]')[0].trim() +
@@ -274,14 +275,14 @@ export async function POST(req: NextRequest) {
           },
         });
       } catch (e) {
-        console.error(e);
+        logServerError(e);
       }
     }
 
     await sendWhatsApp(from, cleanReply);
     return NextResponse.json({ ok: true });
   } catch (e) {
-    console.error(e);
+    logServerError(e);
     return NextResponse.json({ ok: true });
   }
 }

@@ -13,6 +13,37 @@ import { initOutbox, getPendingCount } from './src/core/offline/outbox';
 import { flushOutbox } from './src/core/offline/actions';
 import { useMobileAppStore } from './src/state/store';
 
+if (process.env.NODE_ENV === 'production') {
+  const silent = () => undefined;
+  const consoleMethods = [
+    'assert',
+    'clear',
+    'count',
+    'countReset',
+    'debug',
+    'dir',
+    'dirxml',
+    'error',
+    'group',
+    'groupCollapsed',
+    'groupEnd',
+    'info',
+    'log',
+    'profile',
+    'profileEnd',
+    'table',
+    'time',
+    'timeEnd',
+    'timeLog',
+    'timeStamp',
+    'trace',
+    'warn',
+  ] as const;
+  for (const method of consoleMethods) {
+    (console[method] as (...args: unknown[]) => void) = silent;
+  }
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 10 * 60 * 1000, retry: 2 },
