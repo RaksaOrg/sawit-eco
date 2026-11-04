@@ -17,6 +17,9 @@
       ],
       "@sawit/contracts/*": [
         "../../packages/contracts/src/*"
+      ],
+      "zod": [
+        "./node_modules/zod"
       ]
     },
     "esModuleInterop": true,
