@@ -83,6 +83,7 @@ export function createMetaInferenceProvider(
           },
           body: JSON.stringify({
             model: config.model,
+            reasoning_effort: 'low',
             messages: request.messages,
             temperature: request.temperature ?? 0.2,
             max_tokens: request.maxTokens ?? 800,
