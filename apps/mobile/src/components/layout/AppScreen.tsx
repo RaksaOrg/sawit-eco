@@ -12,6 +12,9 @@ export function AppScreen({
   scrollContentStyle,
   showsVerticalScrollIndicator,
   showTopHeader = false,
+  topHeaderCenter,
+  topHeaderRight,
+  onTopHeaderAvatarPress,
   title,
   subtitle,
   onBack,
@@ -23,6 +26,9 @@ export function AppScreen({
   scrollContentStyle?: ViewStyle;
   showsVerticalScrollIndicator?: boolean;
   showTopHeader?: boolean;
+  topHeaderCenter?: React.ReactNode;
+  topHeaderRight?: React.ReactNode;
+  onTopHeaderAvatarPress?: () => void;
   title?: string;
   subtitle?: string;
   onBack?: () => void;
@@ -35,11 +41,17 @@ export function AppScreen({
       backgroundSource={backgroundSource}
       scrollContentStyle={scrollContentStyle}
       showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-      topBar={showTopHeader ? <AppTopHeader /> : undefined}
+      topBar={
+        showTopHeader ? (
+          <AppTopHeader
+            center={topHeaderCenter}
+            right={topHeaderRight}
+            onAvatarPress={onTopHeaderAvatarPress}
+          />
+        ) : undefined
+      }
     >
-      {title && (
-        <AppHeader title={title} subtitle={subtitle} onBack={onBack} />
-      )}
+      {title && <AppHeader title={title} subtitle={subtitle} onBack={onBack} />}
       {children}
     </AppShell>
   );

@@ -1,23 +1,11 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import {
-  AppButton,
-  AppCard,
-  AppKpiTile,
-  AppScreen,
-} from '../components/AppComponents';
+import { AppButton, AppCard, AppKpiTile, AppScreen } from '../components/AppComponents';
 import { foundationTokens } from '../theme/foundation/tokens';
 import { semanticTokens } from '../theme/semantic/tokens';
 import { useMobileAppStore } from '../state/store';
@@ -101,42 +89,7 @@ export function AttendanceScreen({
   const userSubtitle = `${userName} (${roleName})`;
 
   return (
-    <AppScreen>
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-          <Pressable
-            style={styles.avatarButton}
-            hitSlop={8}
-            onPress={() => navigation?.navigate('Profile')}
-          >
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
-          </Pressable>
-        </View>
-      </View>
-
+    <AppScreen showTopHeader onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}>
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>{t('attendance.title')}</Text>
         <Text style={styles.mainSubtitle} numberOfLines={1}>
@@ -163,7 +116,9 @@ export function AttendanceScreen({
           <Ionicons
             name={toast.type === 'success' ? 'checkmark-circle' : 'alert-circle'}
             size={16}
-            color={toast.type === 'success' ? semanticTokens.color.success : semanticTokens.color.error}
+            color={
+              toast.type === 'success' ? semanticTokens.color.success : semanticTokens.color.error
+            }
           />
           <Text
             style={[
@@ -207,7 +162,11 @@ export function AttendanceScreen({
                   placeholder="B2"
                   placeholderTextColor={semanticTokens.color.textDisabled}
                 />
-                <Ionicons name="chevron-down" size={16} color={semanticTokens.color.textSecondary} />
+                <Ionicons
+                  name="chevron-down"
+                  size={16}
+                  color={semanticTokens.color.textSecondary}
+                />
               </View>
             )}
           />
@@ -231,7 +190,11 @@ export function AttendanceScreen({
                   placeholder="6"
                   placeholderTextColor={semanticTokens.color.textDisabled}
                 />
-                <Ionicons name="chevron-down" size={16} color={semanticTokens.color.textSecondary} />
+                <Ionicons
+                  name="chevron-down"
+                  size={16}
+                  color={semanticTokens.color.textSecondary}
+                />
               </View>
             )}
           />
@@ -239,7 +202,11 @@ export function AttendanceScreen({
 
         <View style={styles.fieldGroup}>
           <View style={styles.fieldLabelRow}>
-            <Ionicons name="chatbubble-outline" size={16} color={semanticTokens.color.textSecondary} />
+            <Ionicons
+              name="chatbubble-outline"
+              size={16}
+              color={semanticTokens.color.textSecondary}
+            />
             <Text style={styles.fieldLabel}>{t('attendance.notes')}</Text>
           </View>
           <Controller
@@ -305,58 +272,6 @@ export function AttendanceScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.pdp,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   titleSection: {
     marginTop: tTokens.spacing.xs,
     marginBottom: tTokens.spacing.md,

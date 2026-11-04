@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import {
@@ -61,51 +61,16 @@ export function TodayScreen({
   const roleDisplay = `${userRole} ${tenantName} • ${tenantName}`;
 
   return (
-    <AppScreen>
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
+    <AppScreen
+      showTopHeader
+      onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}
+      topHeaderCenter={
         <Pressable style={styles.dropdownSelector}>
           <Text style={styles.dropdownText}>{t('tab.today')}</Text>
-          <Ionicons
-            name="chevron-down"
-            size={14}
-            color={semanticTokens.color.textPrimary}
-          />
+          <Ionicons name="chevron-down" size={14} color={semanticTokens.color.textPrimary} />
         </Pressable>
-
-        <View style={styles.headerRightActions}>
-          <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-          <Pressable
-            style={styles.avatarButton}
-            hitSlop={8}
-            onPress={() => navigation?.navigate('Profile')}
-          >
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
-          </Pressable>
-        </View>
-      </View>
-
+      }
+    >
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>{t('today.title')}</Text>
         <Text style={styles.mainSubtitle} numberOfLines={1}>
@@ -136,11 +101,7 @@ export function TodayScreen({
       <AppCard style={styles.actionCard}>
         <View style={styles.actionHeaderRow}>
           <View style={styles.actionIconWrapper}>
-            <Ionicons
-              name="finger-print"
-              size={26}
-              color={semanticTokens.color.pdp}
-            />
+            <Ionicons name="finger-print" size={26} color={semanticTokens.color.pdp} />
           </View>
           <View style={styles.actionTextCol}>
             <Text style={styles.actionTitle}>{t('today.checkin')}</Text>
@@ -194,37 +155,6 @@ export function TodayScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
   dropdownSelector: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -240,27 +170,6 @@ const styles = StyleSheet.create({
     fontSize: tTokens.typography.bodyMedium.size,
     fontWeight: '700',
     color: semanticTokens.color.textPrimary,
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.pdp,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   titleSection: {
     marginTop: tTokens.spacing.xs,

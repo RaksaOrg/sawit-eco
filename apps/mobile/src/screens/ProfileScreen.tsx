@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import {
@@ -46,40 +46,7 @@ export function ProfileScreen({
   const email = (session as any)?.email || '';
 
   return (
-    <AppScreen>
-      {/* Top Header Bar */}
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-
-          <View style={styles.avatarButton}>
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
-          </View>
-        </View>
-      </View>
-
+    <AppScreen showTopHeader>
       {/* Title Section */}
       <Text style={styles.mainTitle}>{t('profile.title')}</Text>
 
@@ -87,11 +54,7 @@ export function ProfileScreen({
       <AppCard style={styles.card}>
         <View style={styles.infoRow}>
           <View style={styles.avatarCircle}>
-            <Ionicons
-              name="person"
-              size={24}
-              color={semanticTokens.color.textPrimary}
-            />
+            <Ionicons name="person" size={24} color={semanticTokens.color.textPrimary} />
           </View>
 
           <View style={styles.infoTextCol}>
@@ -125,11 +88,7 @@ export function ProfileScreen({
 
         {phone ? (
           <View style={styles.detailRow}>
-            <Ionicons
-              name="call-outline"
-              size={18}
-              color={semanticTokens.color.textSecondary}
-            />
+            <Ionicons name="call-outline" size={18} color={semanticTokens.color.textSecondary} />
             <Text style={styles.detailText}>{phone}</Text>
           </View>
         ) : null}
@@ -174,9 +133,7 @@ export function ProfileScreen({
         title={t('profile.sectionActions')}
         action={
           <Pressable onPress={() => navigation?.navigate('AccountManagement')} hitSlop={8}>
-            <Text style={styles.sectionSubtitle}>
-              {t('profile.sectionActionsDesc')}
-            </Text>
+            <Text style={styles.sectionSubtitle}>{t('profile.sectionActionsDesc')}</Text>
           </Pressable>
         }
       >
@@ -231,58 +188,6 @@ export function ProfileScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.pdp,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   mainTitle: {
     fontSize: tTokens.typography.display.size,
     fontWeight: tTokens.typography.display.weight,

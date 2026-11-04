@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Checkbox } from 'react-native-paper';
 
@@ -75,35 +69,16 @@ export function CommerceScreen({
   };
 
   return (
-    <AppScreen>
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
+    <AppScreen
+      showTopHeader
+      topHeaderRight={
         <View style={styles.headerRightActions}>
           <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
+            <Ionicons name="notifications-outline" size={20} color={semanticTokens.color.brand} />
           </Pressable>
           <View style={styles.cartBtnWrapper}>
             <Pressable style={styles.cartButton} hitSlop={8}>
-              <Ionicons
-                name="cart-outline"
-                size={20}
-                color={semanticTokens.color.textPrimary}
-              />
+              <Ionicons name="cart-outline" size={20} color={semanticTokens.color.textPrimary} />
               {totalCartCount > 0 ? (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>{totalCartCount}</Text>
@@ -116,15 +91,11 @@ export function CommerceScreen({
             hitSlop={8}
             onPress={() => navigation?.navigate('Profile')}
           >
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
+            <Ionicons name="person" size={17} color={semanticTokens.color.surface} />
           </Pressable>
         </View>
-      </View>
-
+      }
+    >
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>{t('commerce.title')}</Text>
         <Text style={styles.mainSubtitle}>
@@ -160,9 +131,7 @@ export function CommerceScreen({
           <View style={styles.cartDivider} />
           <View style={styles.cartItem}>
             <Text style={styles.cartTotalLabel}>{t('commerce.cart_total')}</Text>
-            <Text style={styles.cartTotalValue}>
-              Rp {totalCart.toLocaleString('id-ID')}
-            </Text>
+            <Text style={styles.cartTotalValue}>Rp {totalCart.toLocaleString('id-ID')}</Text>
           </View>
 
           <View style={styles.ackRow}>
@@ -191,9 +160,7 @@ export function CommerceScreen({
       <AppCard style={styles.recomCard}>
         <View style={styles.recomBadge}>
           <Ionicons name="sparkles" size={13} color={semanticTokens.color.pdp} />
-          <Text style={styles.recomBadgeText}>
-            {t('commerce.agronomy_recommendation')}
-          </Text>
+          <Text style={styles.recomBadgeText}>{t('commerce.agronomy_recommendation')}</Text>
         </View>
 
         <Text style={styles.productName}>{t('commerce.productName')}</Text>
@@ -215,8 +182,7 @@ export function CommerceScreen({
         <Pressable
           style={styles.recomButton}
           onPress={() => {
-            const prod =
-              products?.find((p) => p.sku === 'FERT-KCL-25') || products?.[0];
+            const prod = products?.find((p) => p.sku === 'FERT-KCL-25') || products?.[0];
             if (prod) {
               addToCart({
                 productId: prod.id,
@@ -258,9 +224,7 @@ export function CommerceScreen({
                 <View style={styles.productInfoCol}>
                   <View style={styles.titlePriceRow}>
                     <Text style={styles.catalogProductName}>{p.nama}</Text>
-                    <Text style={styles.catalogPrice}>
-                      Rp {p.harga.toLocaleString('id-ID')}
-                    </Text>
+                    <Text style={styles.catalogPrice}>Rp {p.harga.toLocaleString('id-ID')}</Text>
                   </View>
                   <Text style={styles.catalogMeta}>
                     {p.sku} • {p.kategori} • {t('commerce.stock')} {p.stok}
@@ -288,9 +252,7 @@ export function CommerceScreen({
                     color={semanticTokens.color.pdp}
                     style={{ marginRight: 6 }}
                   />
-                  <Text style={styles.addCartOutlineText}>
-                    {t('commerce.addToCart')}
-                  </Text>
+                  <Text style={styles.addCartOutlineText}>{t('commerce.addToCart')}</Text>
                 </Pressable>
               </View>
             </AppCard>
@@ -302,37 +264,6 @@ export function CommerceScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
   headerRightActions: {
     flexDirection: 'row',
     alignItems: 'center',

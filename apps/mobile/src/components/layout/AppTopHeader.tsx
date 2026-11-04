@@ -8,27 +8,42 @@ import { semanticTokens } from '../../theme/semantic/tokens';
 
 const tokens = foundationTokens;
 
-export function AppTopHeader() {
+export function AppTopHeader({
+  center,
+  right,
+  onAvatarPress,
+}: {
+  center?: React.ReactNode;
+  right?: React.ReactNode;
+  onAvatarPress?: () => void;
+}) {
   const language = useMobileAppStore((state) => state.language);
   const t = createTranslator(language);
 
   return (
     <View style={styles.topHeader}>
       <View style={styles.brandGroup}>
-        <Image source={require('../../../assets/brand-logo.png')} style={styles.logo} resizeMode="contain" />
+        <Image
+          source={require('../../../assets/brand-logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <View style={styles.brandTextCol}>
           <Text style={styles.brandText}>{t('login.brand1')}</Text>
           <Text style={styles.brandText}>{t('login.brand2')}</Text>
         </View>
       </View>
-      <View style={styles.headerActions}>
-        <Pressable style={styles.bellButton} hitSlop={8}>
-          <Ionicons name="notifications-outline" size={20} color={semanticTokens.color.brand} />
-        </Pressable>
-        <View style={styles.avatarButton}>
-          <Ionicons name="person" size={17} color={semanticTokens.color.surface} />
+      {center ? <View style={styles.center}>{center}</View> : null}
+      {right ?? (
+        <View style={styles.headerActions}>
+          <Pressable style={styles.bellButton} hitSlop={8}>
+            <Ionicons name="notifications-outline" size={20} color={semanticTokens.color.brand} />
+          </Pressable>
+          <Pressable style={styles.avatarButton} hitSlop={8} onPress={onAvatarPress}>
+            <Ionicons name="person" size={17} color={semanticTokens.color.surface} />
+          </Pressable>
         </View>
-      </View>
+      )}
     </View>
   );
 }
@@ -51,6 +66,7 @@ const styles = StyleSheet.create({
     lineHeight: tokens.typography.labelLarge.lineHeight,
     fontWeight: '800',
   },
+  center: { flex: 1, alignItems: 'center' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: tokens.spacing.sm },
   bellButton: {
     width: 36,
