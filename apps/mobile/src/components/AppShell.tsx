@@ -31,6 +31,8 @@ export interface AppShellProps {
   headerRight?: ReactNode;
   topBar?: ReactNode;
   scroll?: boolean;
+  scrollContentStyle?: StyleValue<ViewStyle>;
+  showsVerticalScrollIndicator?: boolean;
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
   logoSource?: ImageSource;
   backgroundSource?: ImageSource;
@@ -52,6 +54,8 @@ export function AppShell({
   headerRight,
   topBar,
   scroll = true,
+  scrollContentStyle,
+  showsVerticalScrollIndicator = false,
   edges = ['top', 'bottom'],
   logoSource,
   backgroundSource,
@@ -130,9 +134,9 @@ export function AppShell({
       {scroll ? (
         <ScrollView
           style={[styles.scroll, backgroundSource ? styles.transparent : null]}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, scrollContentStyle]}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={showsVerticalScrollIndicator}
         >
           {bodyContent}
         </ScrollView>

@@ -1,6 +1,7 @@
 export * from './AppShell';
 export * from './layout/AppScreen';
 export * from './layout/AppHeader';
+export * from './layout/AppTopHeader';
 export * from './layout/AppCard';
 export * from './layout/AppSection';
 export * from './data/AppStatusBadge';

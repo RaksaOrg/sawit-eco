@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -94,40 +93,7 @@ export function AccountManagementScreen({
   };
 
   return (
-    <AppScreen>
-      {/* Top Header Bar */}
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-
-          <View style={styles.avatarButton}>
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
-          </View>
-        </View>
-      </View>
-
+    <AppScreen showTopHeader>
       <View style={styles.managementContainer}>
         {/* Header Title with Back Button */}
         <View style={styles.mgmtTitleRow}>
@@ -412,58 +378,6 @@ export function AccountManagementScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.pdp,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   managementContainer: {
     paddingBottom: tTokens.spacing.xl,
   },

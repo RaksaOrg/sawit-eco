@@ -1,13 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppScreen } from '../components/AppComponents';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
 import { Ionicons } from '@expo/vector-icons';
 import { createTranslator, type TranslationKey } from '../i18n';
 import { useMobileAppStore } from '../state/store';
 
-const STEP_COUNTS: TranslationKey[] = ['selfie.step_count1', 'selfie.step_count2', 'selfie.step_count3'];
+const STEP_COUNTS: TranslationKey[] = [
+  'selfie.step_count1',
+  'selfie.step_count2',
+  'selfie.step_count3',
+];
 const STEPS: [TranslationKey, TranslationKey][] = [
   ['selfie.step1_title', 'selfie.step1_description'],
   ['selfie.step2_title', 'selfie.step2_description'],
@@ -44,28 +48,26 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     setPermissionRequested(true);
     requestPermission()
       .then((granted) => {
-        if (!granted)
-          setCameraError(t('selfie.permission_denied'));
+        if (!granted) setCameraError(t('selfie.permission_denied'));
       })
-      .catch(() =>
-        setCameraError(t('selfie.permission_error')),
-      );
+      .catch(() => setCameraError(t('selfie.permission_error')));
   }, [hasPermission, permissionRequested, requestPermission]);
-  const faceDetectorOutput = useMemo(() => createFaceDetectorOutput({
-    performanceMode: 'fast',
-    runClassifications: true,
-    runLandmarks: true,
-    mirrorMode: 'on',
-    onFacesDetected: (faces) => faceHandler.current(faces),
-    onError: () => setCameraError(t('selfie.detector_error')),
-  }), []);
+  const faceDetectorOutput = useMemo(
+    () =>
+      createFaceDetectorOutput({
+        performanceMode: 'fast',
+        runClassifications: true,
+        runLandmarks: true,
+        mirrorMode: 'on',
+        onFacesDetected: (faces) => faceHandler.current(faces),
+        onError: () => setCameraError(t('selfie.detector_error')),
+      }),
+    [],
+  );
 
   const start = () => {
     if (!cameraActive) {
-      Alert.alert(
-        t('selfie.not_ready_title'),
-        cameraError || t('selfie.not_ready_message'),
-      );
+      Alert.alert(t('selfie.not_ready_title'), cameraError || t('selfie.not_ready_message'));
       return;
     }
     setStarted(true);
@@ -105,150 +107,107 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.topHeader}>
-          <View style={styles.brand}>
-            <View style={styles.logo}>
-              <Ionicons name="leaf" size={31} color="#0BA65B" />
-            </View>
-            <Text style={styles.brandText}>{t('selfie.brand1')}{`\n`}{t('selfie.brand2')}</Text>
+    <AppScreen
+      scroll
+      showTopHeader
+      style={styles.safeArea}
+    >
+      <View style={styles.card}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.shield}>
+            <Ionicons name="shield-checkmark" size={30} color="#0C9F68" />
           </View>
-          <View style={styles.headerActions}>
-            <View style={styles.notification}>
-              <Ionicons name="notifications-outline" size={25} color={COLORS.navy} />
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{t('selfie.notification_count')}</Text>
-              </View>
-            </View>
-            <View style={styles.avatar}>
-              <Ionicons name="person" size={25} color={COLORS.primary} />
-            </View>
+          <View style={styles.sectionText}>
+            <Text style={styles.sectionTitle}>{t('selfie.section_title')}</Text>
+            <Text style={styles.sectionDescription}>{t('selfie.section_description')}</Text>
           </View>
         </View>
-        <View style={styles.pageTitle}>
-          <Pressable onPress={() => navigation?.goBack()} hitSlop={10}>
-            <Ionicons name="arrow-back" size={27} color={COLORS.navy} />
-          </Pressable>
-          <Text style={styles.title}>{t('selfie.title')}</Text>
-        </View>
-        <Text style={styles.subtitle}>
-          {t('selfie.subtitle')}
-        </Text>
-
-        <View style={styles.card}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.shield}>
-              <Ionicons name="shield-checkmark" size={30} color="#0C9F68" />
-            </View>
-            <View style={styles.sectionText}>
-              <Text style={styles.sectionTitle}>{t('selfie.section_title')}</Text>
-              <Text style={styles.sectionDescription}>
-                {t('selfie.section_description')}
+        <View style={styles.cameraContainer}>
+          {cameraActive ? (
+            <Camera
+              style={styles.cameraPreview}
+              device={device!}
+              isActive={cameraActive}
+              implementationMode="compatible"
+              outputs={[faceDetectorOutput]}
+              onPreviewStarted={() => {
+                setPreviewReady(true);
+                setCameraError('');
+              }}
+              onPreviewStopped={() => setPreviewReady(false)}
+              onError={() => setCameraError(t('selfie.camera_error'))}
+              pointerEvents="auto"
+              onLayout={() => undefined}
+              nativeID="selfie-camera"
+            />
+          ) : (
+            <View style={styles.placeholder}>
+              <Ionicons name="camera-outline" size={44} color="#8996B1" />
+              <Text style={styles.placeholderText}>
+                {device ? t('selfie.allow_camera') : t('selfie.no_camera')}
               </Text>
             </View>
-          </View>
-          <View style={styles.cameraContainer}>
-            {cameraActive ? (
-              <Camera
-                style={styles.cameraPreview}
-                device={device!}
-                isActive={cameraActive}
-                implementationMode="compatible"
-                outputs={[faceDetectorOutput]}
-                onPreviewStarted={() => {
-                  setPreviewReady(true);
-                  setCameraError('');
-                }}
-                onPreviewStopped={() => setPreviewReady(false)}
-                onError={() => setCameraError(t('selfie.camera_error'))}
-                pointerEvents="auto"
-                onLayout={() => undefined}
-                nativeID="selfie-camera"
-              />
-            ) : (
-              <View style={styles.placeholder}>
-                <Ionicons name="camera-outline" size={44} color="#8996B1" />
-                <Text style={styles.placeholderText}>
-                  {device
-                    ? t('selfie.allow_camera')
-                    : t('selfie.no_camera')}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.corner, styles.topLeft]} />
-            <View style={[styles.corner, styles.topRight]} />
-            <View style={[styles.corner, styles.bottomLeft]} />
-            <View style={[styles.corner, styles.bottomRight]} />
-            <View style={styles.faceOval} />
-            <View style={styles.cameraStatus}>
-              <View style={styles.activeDot} />
-              <Text style={styles.statusText}>
-                {cameraError
-                  ? t('selfie.status_problem')
-                  : !cameraActive
-                    ? device
-                      ? t('selfie.status_permission')
-                      : t('selfie.status_unavailable')
-                    : previewReady
-                      ? t('selfie.status_active')
-                      : t('selfie.status_connecting')}
-              </Text>
-            </View>
-          </View>
-          {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
-          <View style={styles.instructions}>
-            <Instruction icon="camera-outline" text={t('selfie.position_face')} />
-            <Instruction icon="sunny-outline" text={t('selfie.lighting')} />
-            <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} />
-          </View>
-          <View style={styles.stepCard}>
-            <View style={styles.stepIllustration}>
-              <Ionicons name="person-outline" size={50} color={COLORS.navy} />
-              <Ionicons
-                name="refresh-outline"
-                size={24}
-                color={COLORS.primary}
-                style={styles.rotate}
-              />
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
-              <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
-            </View>
-            <View style={styles.progress}>
-              <Text style={styles.counter}>{t(STEP_COUNTS[step])}</Text>
-              <View style={styles.dots}>
-                {STEPS.map((_, index) => (
-                  <View key={index} style={[styles.dot, index === step && styles.dotActive]} />
-                ))}
-              </View>
-            </View>
-          </View>
-          <Pressable onPress={started ? next : start} style={styles.primaryButton}>
-            <Ionicons name="scan-outline" size={25} color={COLORS.white} />
-            <Text style={styles.primaryText}>
-              {started ? t('selfie.continue') : t('selfie.start')}
-            </Text>
-          </Pressable>
-          <Pressable
-            style={styles.secondaryButton}
-            onPress={() =>
-              Alert.alert(t('selfie.later_title'), t('selfie.later_message'))
-            }
-          >
-            <Text style={styles.secondaryText}>{t('selfie.later')}</Text>
-          </Pressable>
-          <View style={styles.security}>
-            <Ionicons name="lock-closed-outline" size={19} color="#6B7B9D" />
-            <Text style={styles.securityText}>
-              {t('selfie.security')}
+          )}
+          <View style={[styles.corner, styles.topLeft]} />
+          <View style={[styles.corner, styles.topRight]} />
+          <View style={[styles.corner, styles.bottomLeft]} />
+          <View style={[styles.corner, styles.bottomRight]} />
+          <View style={styles.faceOval} />
+          <View style={styles.cameraStatus}>
+            <View style={styles.activeDot} />
+            <Text style={styles.statusText}>
+              {cameraError
+                ? t('selfie.status_problem')
+                : !cameraActive
+                  ? device
+                    ? t('selfie.status_permission')
+                    : t('selfie.status_unavailable')
+                  : previewReady
+                    ? t('selfie.status_active')
+                    : t('selfie.status_connecting')}
             </Text>
           </View>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+        {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
+        <View style={styles.instructions}>
+          <Instruction icon="camera-outline" text={t('selfie.position_face')} />
+          <Instruction icon="sunny-outline" text={t('selfie.lighting')} />
+          <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} />
+        </View>
+        <View style={styles.stepCard}>
+          <View style={styles.stepIllustration}>
+            <Ionicons name="person-outline" size={50} color={COLORS.navy} />
+            <Ionicons
+              name="refresh-outline"
+              size={24}
+              color={COLORS.primary}
+              style={styles.rotate}
+            />
+          </View>
+          <View style={styles.divider} />
+          <View style={styles.stepContent}>
+            <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
+            <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
+          </View>
+        </View>
+        <Pressable onPress={started ? next : start} style={styles.primaryButton}>
+          <Ionicons name="scan-outline" size={25} color={COLORS.white} />
+          <Text style={styles.primaryText}>
+            {started ? t('selfie.continue') : t('selfie.start')}
+          </Text>
+        </Pressable>
+        <Pressable
+          style={styles.secondaryButton}
+          onPress={() => Alert.alert(t('selfie.later_title'), t('selfie.later_message'))}
+        >
+          <Text style={styles.secondaryText}>{t('selfie.later')}</Text>
+        </Pressable>
+        <View style={styles.security}>
+          <Ionicons name="lock-closed-outline" size={19} color="#6B7B9D" />
+          <Text style={styles.securityText}>{t('selfie.security')}</Text>
+        </View>
+      </View>
+    </AppScreen>
   );
 }
 
@@ -265,65 +224,6 @@ function Instruction({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; tex
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F4FAFF' },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'android' ? 24 : 12,
-    paddingBottom: 40,
-  },
-  topHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-    paddingHorizontal: 6,
-  },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  logo: { width: 42, height: 46, alignItems: 'center', justifyContent: 'center' },
-  brandText: { fontSize: 17, fontWeight: '800', color: '#0A9F4C', lineHeight: 22 },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  notification: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#E4F8F1',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badge: {
-    position: 'absolute',
-    right: 2,
-    top: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#FF4F58',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  badgeText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F0F1FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pageTitle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 17,
-    marginHorizontal: 14,
-    marginBottom: 12,
-  },
-  title: { fontSize: 24, fontWeight: '800', color: COLORS.navy },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.navy,
-    lineHeight: 21,
-    marginHorizontal: 14,
-    marginBottom: 20,
-  },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 30,
