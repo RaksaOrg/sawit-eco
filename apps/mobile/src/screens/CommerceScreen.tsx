@@ -223,7 +223,38 @@ export function CommerceScreen({
   };
 
   return (
-    <AppScreen showTopHeader onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}>
+    <AppScreen 
+      showTopHeader 
+      onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}
+      topHeaderRight={
+        <View style={styles.cartBtnWrapper}>
+          <Pressable
+            style={styles.cartButton}
+            hitSlop={8}
+            onPress={() => navigation?.navigate('Cart')}
+            accessibilityRole="button"
+            accessibilityLabel="Shopping cart"
+            accessibilityState={{
+              selected: cart.length > 0,
+            }}
+          >
+            <Ionicons
+              name="cart-outline"
+              size={20}
+              color={semanticTokens.color.textPrimary}
+            />
+
+            {totalCartCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>
+                  {totalCartCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+      }
+    >
       {/* TITLE */}
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>
@@ -648,6 +679,40 @@ const styles = StyleSheet.create({
     fontSize: tTokens.typography.bodyMedium.size,
     lineHeight: tTokens.typography.bodyMedium.lineHeight,
     color: semanticTokens.color.textSecondary,
+  },
+
+  cartBtnWrapper: {
+    position: 'relative',
+  },
+
+  cartButton: {
+    width: 36,
+    height: 36,
+    borderRadius: tTokens.radius.full,
+    backgroundColor: semanticTokens.color.surface,
+    borderWidth: tTokens.borderWidth.hairline,
+    borderColor: semanticTokens.color.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  cartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: semanticTokens.color.error,
+    borderRadius: tTokens.radius.full,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+
+  cartBadgeText: {
+    color: semanticTokens.color.surface,
+    fontSize: 10,
+    fontWeight: '700',
   },
 
   orderInfoRow: {
