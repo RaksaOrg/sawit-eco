@@ -8,53 +8,53 @@ datasource db {
 }
 
 model Tenant {
-  id           String        @id @default(uuid())
-  nama         String
-  lokasi       String?
-  luasHa       Float?
-  email        String?       @unique
-  passwordHash String?
-  users        User[]
-  blocks       Block[]
-  reports      DailyReport[]
-  agronomyLogs AgronomyLog[]
-  fieldTasks   FieldTask[]
-  learningModules LearningModule[]
-  userProgress UserLearningProgress[]
-  products     Product[]
-  productGaps  ProductGap[]
-  carts        Cart[]
-  orders       Order[]
+  id                    String                 @id @default(uuid())
+  nama                  String
+  lokasi                String?
+  luasHa                Float?
+  email                 String?                @unique
+  passwordHash          String?
+  users                 User[]
+  blocks                Block[]
+  reports               DailyReport[]
+  agronomyLogs          AgronomyLog[]
+  fieldTasks            FieldTask[]
+  learningModules       LearningModule[]
+  userProgress          UserLearningProgress[]
+  products              Product[]
+  productGaps           ProductGap[]
+  carts                 Cart[]
+  orders                Order[]
   recommendationLedgers RecommendationLedger[]
-  teams        Team[]
-  attendances  Attendance[]
-  productivity ProductivitySnapshot[]
-  pdpAuditLogs PdpAuditLog[]
-  agentRuns    AgentRun[]
-  priceAnomalies PriceAnomaly[]
-  suppliers    Supplier[]
-  priceBooks   PriceBook[]
-  createdAt    DateTime      @default(now())
+  teams                 Team[]
+  attendances           Attendance[]
+  productivity          ProductivitySnapshot[]
+  pdpAuditLogs          PdpAuditLog[]
+  agentRuns             AgentRun[]
+  priceAnomalies        PriceAnomaly[]
+  suppliers             Supplier[]
+  priceBooks            PriceBook[]
+  createdAt             DateTime               @default(now())
 }
 
 model User {
-  id           String        @id @default(uuid())
-  tenantId     String
-  tenant       Tenant        @relation(fields: [tenantId], references: [id])
-  nama         String
-  waNumber     String        @unique
-  role         String
-  passwordHash String?
-  reports      DailyReport[]
-  assignedTasks FieldTask[]  @relation("AssignedTasks")
+  id               String                 @id @default(uuid())
+  tenantId         String
+  tenant           Tenant                 @relation(fields: [tenantId], references: [id])
+  nama             String
+  waNumber         String                 @unique
+  role             String
+  passwordHash     String?
+  reports          DailyReport[]
+  assignedTasks    FieldTask[]            @relation("AssignedTasks")
   learningProgress UserLearningProgress[]
-  carts        Cart[]
-  orders       Order[]
-  teamId       String?
-  team         Team?         @relation("TeamMembers", fields: [teamId], references: [id])
-  ledTeams     Team[]        @relation("TeamMandor")
-  attendances  Attendance[]
-  createdAt    DateTime      @default(now())
+  carts            Cart[]
+  orders           Order[]
+  teamId           String?
+  team             Team?                  @relation("TeamMembers", fields: [teamId], references: [id])
+  ledTeams         Team[]                 @relation("TeamMandor")
+  attendances      Attendance[]
+  createdAt        DateTime               @default(now())
 
   @@index([tenantId, role])
   @@index([tenantId, teamId])
@@ -75,26 +75,30 @@ model Team {
 }
 
 model Attendance {
-  id             String   @id @default(uuid())
-  tenantId       String
-  tenant         Tenant   @relation(fields: [tenantId], references: [id])
-  userId         String
-  user           User     @relation(fields: [userId], references: [id])
-  blockId        String?
-  block          Block?   @relation(fields: [blockId], references: [id])
-  blokKode       String
-  workDate       DateTime
-  status         String   @default("PRESENT")
-  verificationStatus String @default("VERIFIED")
-  source         String   @default("WHATSAPP")
-  hkValue        Float    @default(1)
-  latitude       Float?
-  longitude      Float?
-  notes          String?
-  idempotencyKey String   @unique
-  audits         AttendanceAudit[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                     String            @id @default(uuid())
+  tenantId               String
+  tenant                 Tenant            @relation(fields: [tenantId], references: [id])
+  userId                 String
+  user                   User              @relation(fields: [userId], references: [id])
+  blockId                String?
+  block                  Block?            @relation(fields: [blockId], references: [id])
+  blokKode               String
+  workDate               DateTime
+  status                 String            @default("PRESENT")
+  verificationStatus     String            @default("VERIFIED")
+  checkInAt              DateTime?
+  checkOutAt             DateTime?
+  checkInIdempotencyKey  String?           @unique
+  checkOutIdempotencyKey String?           @unique
+  source                 String            @default("WHATSAPP")
+  hkValue                Float             @default(1)
+  latitude               Float?
+  longitude              Float?
+  notes                  String?
+  idempotencyKey         String            @unique
+  audits                 AttendanceAudit[]
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
 
   @@index([tenantId, workDate])
   @@index([tenantId, userId, workDate])
@@ -139,56 +143,56 @@ model ProductivitySnapshot {
 }
 
 model Block {
-  id         String @id @default(uuid())
-  tenantId   String
-  tenant     Tenant @relation(fields: [tenantId], references: [id])
-  kode       String
-  luasHa     Float
-  tahunTanam Int
+  id          String       @id @default(uuid())
+  tenantId    String
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  kode        String
+  luasHa      Float
+  tahunTanam  Int
   attendances Attendance[]
 
   @@unique([tenantId, kode])
 }
 
 model DailyReport {
-  id            String   @id @default(uuid())
+  id            String     @id @default(uuid())
   tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
+  tenant        Tenant     @relation(fields: [tenantId], references: [id])
   userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
+  user          User?      @relation(fields: [userId], references: [id])
   blokKode      String
   mandorNama    String?
-  aktivitas     String   @default("Panen")
-  hadir         Int      @default(0)
-  produksiKg    Float    @default(0)
-  luasHa        Float    @default(0)
-  status        String   @default("Selesai")
+  aktivitas     String     @default("Panen")
+  hadir         Int        @default(0)
+  produksiKg    Float      @default(0)
+  luasHa        Float      @default(0)
+  status        String     @default("Selesai")
   produktivitas Float?
   rawMessage    String
-  waMessageId   String?  @unique
-  fieldTaskId   String?  @unique
+  waMessageId   String?    @unique
+  fieldTaskId   String?    @unique
   fieldTask     FieldTask? @relation(fields: [fieldTaskId], references: [id])
-  tanggal       DateTime @default(now())
-  createdAt     DateTime @default(now())
+  tanggal       DateTime   @default(now())
+  createdAt     DateTime   @default(now())
 }
 
 model AgronomyLog {
-  id          String   @id @default(uuid())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  blokKode    String
-  fotoUrl     String?
-  gejala      String?
-  diagnosa    String
-  risiko      String
-  rekomendasi String
-  mandorNama  String?
-  waMessageId String?  @unique
-  fieldTasks  FieldTask[]
-  productGaps ProductGap[]
-  cartItems   CartItem[]
+  id                    String                 @id @default(uuid())
+  tenantId              String
+  tenant                Tenant                 @relation(fields: [tenantId], references: [id])
+  blokKode              String
+  fotoUrl               String?
+  gejala                String?
+  diagnosa              String
+  risiko                String
+  rekomendasi           String
+  mandorNama            String?
+  waMessageId           String?                @unique
+  fieldTasks            FieldTask[]
+  productGaps           ProductGap[]
+  cartItems             CartItem[]
   recommendationLedgers RecommendationLedger[]
-  createdAt   DateTime @default(now())
+  createdAt             DateTime               @default(now())
 }
 
 model FieldTask {
@@ -221,17 +225,17 @@ model FieldTask {
 }
 
 model LearningModule {
-  id           String   @id @default(uuid())
+  id           String                 @id @default(uuid())
   tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id])
   judul        String
   kategori     String
   deskripsi    String
-  durasiMenit  Int      @default(15)
+  durasiMenit  Int                    @default(15)
   konten       String
   videoUrl     String?
   progressList UserLearningProgress[]
-  createdAt    DateTime @default(now())
+  createdAt    DateTime               @default(now())
 
   @@index([tenantId, kategori])
 }
@@ -253,25 +257,25 @@ model UserLearningProgress {
 }
 
 model Product {
-  id          String     @id @default(uuid())
-  tenantId    String
-  tenant      Tenant     @relation(fields: [tenantId], references: [id])
-  sku         String
-  nama        String
-  kategori    String
-  harga       Float
-  satuan      String
-  ukuranKemasan Float    @default(50)
-  satuanKemasan String   @default("Kg")
-  stok        Int        @default(0)
-  isActive    Boolean    @default(true)
-  registrationNo String?
+  id               String      @id @default(uuid())
+  tenantId         String
+  tenant           Tenant      @relation(fields: [tenantId], references: [id])
+  sku              String
+  nama             String
+  kategori         String
+  harga            Float
+  satuan           String
+  ukuranKemasan    Float       @default(50)
+  satuanKemasan    String      @default("Kg")
+  stok             Int         @default(0)
+  isActive         Boolean     @default(true)
+  registrationNo   String?
   activeIngredient String?
-  regulatoryStatus String @default("VALID")
-  restricted  Boolean    @default(false)
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  createdAt   DateTime   @default(now())
+  regulatoryStatus String      @default("VALID")
+  restricted       Boolean     @default(false)
+  cartItems        CartItem[]
+  orderItems       OrderItem[]
+  createdAt        DateTime    @default(now())
 
   @@unique([tenantId, sku])
 }
@@ -364,16 +368,16 @@ model OrderItem {
 }
 
 model RecommendationLedger {
-  id            String       @id @default(uuid())
+  id            String      @id @default(uuid())
   tenantId      String
-  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
   agronomyLogId String
-  agronomyLog   AgronomyLog  @relation(fields: [agronomyLogId], references: [id])
+  agronomyLog   AgronomyLog @relation(fields: [agronomyLogId], references: [id])
   orderId       String?
-  order         Order?       @relation(fields: [orderId], references: [id])
+  order         Order?      @relation(fields: [orderId], references: [id])
   stage         String
   metadata      String?
-  createdAt     DateTime     @default(now())
+  createdAt     DateTime    @default(now())
 
   @@index([tenantId, agronomyLogId])
 }

@@ -47,7 +47,7 @@ const COLORS = {
 };
 type Props = {
   navigation?: { goBack: () => void; navigate?: (screen: string, params?: unknown) => void };
-  route?: { params?: { source?: string } };
+  route?: { params?: { source?: string; attendanceAction?: 'CHECK_IN' | 'CHECK_OUT' } };
 };
 
 export function SelfieVerificationScreen({ navigation, route }: Props) {
@@ -194,6 +194,21 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
 
   faceHandler.current = handleFacesDetected;
 
+  const finishVerification = (verification: 'success' | 'error') => {
+    setVerifying(false);
+    if (route?.params?.source === 'Today') {
+      if (verification === 'error') {
+        Alert.alert(t('selfie.not_ready_title'), t('selfie.verification_error'));
+      }
+      navigation?.goBack();
+      return;
+    }
+    navigation?.navigate?.('AccountManagement', {
+      verification,
+      source: route?.params?.source || 'AccountManagement',
+    });
+  };
+
   const captureChallengeStep = async () => {
     captureLock.current = true;
     let photo;
@@ -210,6 +225,9 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
       setVerifying(true);
       const form = new FormData();
       form.append('challengeOrder', challengeOrder.join(','));
+      if (route?.params?.attendanceAction) {
+        form.append('attendanceAction', route.params.attendanceAction);
+      }
       challengePaths.current.forEach((path, index) => {
         form.append('frames', {
           uri: path.startsWith('file://') ? path : `file://${path}`,
@@ -221,26 +239,11 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         method: 'POST',
         body: form,
       });
-      setVerifying(false);
-      if (result.isLive) {
-        navigation?.navigate?.('AccountManagement', {
-          verification: 'success',
-          source: route?.params?.source || 'AccountManagement',
-        });
-      } else {
-        navigation?.navigate?.('AccountManagement', {
-          verification: 'error',
-          source: route?.params?.source || 'AccountManagement',
-        });
-      }
+      finishVerification(result.isLive ? 'success' : 'error');
     } catch {
       setStarted(false);
-      setVerifying(false);
       setCameraError(t('selfie.verification_error'));
-      navigation?.navigate?.('AccountManagement', {
-        verification: 'error',
-        source: route?.params?.source || 'AccountManagement',
-      });
+      finishVerification('error');
     } finally {
       photo?.dispose();
       if (!keepFrames) {

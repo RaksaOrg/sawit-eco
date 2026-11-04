@@ -50,6 +50,7 @@ declare module '@react-navigation/native' {
   export function useNavigation<T = any>(): T;
   export function useRoute<T = any>(): T;
   export function useIsFocused(): boolean;
+  export function useFocusEffect(effect: () => void | (() => void)): void;
   export const createNavigationContainerRef: any;
 }
 

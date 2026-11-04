@@ -9,6 +9,7 @@
     "mobile:test": "npm --prefix apps/mobile run test",
     "mobile:android": "npm --prefix apps/mobile run android",
     "mobile:ios": "npm --prefix apps/mobile run ios",
+    "web:install": "npm --prefix apps/web install",
     "web:start": "npm --prefix apps/web run start",
     "web:dev": "npm --prefix apps/web run dev",
     "web:build": "npm --prefix apps/web run build",

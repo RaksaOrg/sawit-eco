@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,11 +18,12 @@ import { foundationTokens } from '../theme/foundation/tokens';
 import { semanticTokens } from '../theme/semantic/tokens';
 import { useMobileAppStore } from '../state/store';
 import { createTranslator } from '../i18n';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTasks, MobileTask } from '../core/api/hooks';
-import { queueThenTrySync } from '../core/offline/actions';
-import { enqueueEvent } from '../core/offline/outbox';
+import { apiRequest } from '../core/api/client';
 
 const tTokens = foundationTokens;
+type AttendancePunchStatus = { checkInAt: string | null; checkOutAt: string | null };
 
 export function TodayScreen({
   navigation,
@@ -34,27 +35,46 @@ export function TodayScreen({
   const pendingCount = useMobileAppStore((s) => s.pendingSyncCount);
   const isSyncing = useMobileAppStore((s) => s.isSyncing);
   const t = createTranslator(language);
+  const [attendance, setAttendance] = useState<AttendancePunchStatus>({
+    checkInAt: null,
+    checkOutAt: null,
+  });
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+  const [attendanceError, setAttendanceError] = useState(false);
 
   const { data: tasks, isLoading, refetch } = useTasks();
 
-  const handleQuickCheckin = async () => {
-    if (!session?.userId) return;
-    const idempotencyKey = `att-${session.userId}-TODAY-${Date.now()}`;
-    await queueThenTrySync(async () => {
-      return enqueueEvent(
-        'ATTENDANCE',
-        {
-          userId: session.userId,
-          blockCode: 'A1',
-          workDate: new Date().toISOString().slice(0, 10),
-          status: 'PRESENT',
-          source: 'MOBILE',
-          idempotencyKey,
-        },
-        idempotencyKey,
-      );
-    });
-  };
+  const refreshAttendance = useCallback(async () => {
+    setAttendanceLoading(true);
+    try {
+      const status = await apiRequest<AttendancePunchStatus>('/api/hris/attendance/self');
+      setAttendance(status);
+      setAttendanceError(false);
+    } catch {
+      setAttendanceError(true);
+    } finally {
+      setAttendanceLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshAttendance();
+    }, [refreshAttendance]),
+  );
+
+  const attendanceAction = !attendance.checkInAt
+    ? 'CHECK_IN'
+    : !attendance.checkOutAt
+      ? 'CHECK_OUT'
+      : null;
+  const attendanceLabel = attendanceLoading
+    ? t('common.loading')
+    : attendanceAction === 'CHECK_IN'
+      ? t('today.checkin')
+      : attendanceAction === 'CHECK_OUT'
+        ? t('today.checkout')
+        : t('today.attendance_complete');
 
   const userRole = session?.role || 'Owner';
   const tenantName = session?.tenantName || 'PT Sawit Lestari Jaya';
@@ -105,15 +125,35 @@ export function TodayScreen({
           </View>
           <View style={styles.actionTextCol}>
             <Text style={styles.actionTitle}>{t('today.checkin')}</Text>
-            <Text style={styles.actionSubtitle}>{t('today.checkin_desc')}</Text>
+            <Text style={styles.actionSubtitle}>
+              {attendanceAction === 'CHECK_OUT'
+                ? t('today.checkout_desc')
+                : attendanceAction === 'CHECK_IN'
+                  ? t('today.checkin_desc')
+                  : t('today.attendance_complete')}
+            </Text>
           </View>
         </View>
 
+        {attendanceError ? (
+          <Text style={styles.attendanceError}>{t('today.attendance_error')}</Text>
+        ) : null}
         <AppButton
-          label={t('today.checkin')}
+          label={attendanceError ? t('common.retry') : attendanceLabel}
           variant="primary"
           icon="finger-print"
-          onPress={handleQuickCheckin}
+          onPress={() => {
+            if (attendanceError) {
+              void refreshAttendance();
+            } else if (attendanceAction) {
+              navigation?.navigate('SelfieVerification', {
+                source: 'Today',
+                attendanceAction,
+              });
+            }
+          }}
+          disabled={(!attendanceAction && !attendanceError) || attendanceLoading}
+          loading={attendanceLoading}
           fullWidth
           height={48}
           radius={tTokens.radius.md}
@@ -186,6 +226,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: semanticTokens.color.textSecondary,
     marginTop: tTokens.spacing['2xs'],
+  },
+  attendanceError: {
+    color: semanticTokens.color.error,
+    fontSize: tTokens.typography.labelSmall.size,
+    marginBottom: tTokens.spacing.sm,
   },
   actionCard: {
     padding: tTokens.spacing.md,
