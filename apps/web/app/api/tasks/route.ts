@@ -7,6 +7,8 @@ import { sendWhatsApp } from '@/lib/whatsapp';
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
+  let stage = 'auth';
+  let statusFilter: string | null = null;
   try {
     const tenant = await requireTenant(req);
     if (!tenant) {
@@ -15,6 +17,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
+    statusFilter = status;
     const blockCode = searchParams.get('blockCode') || searchParams.get('blokKode');
     const supervisorId = searchParams.get('supervisorId') || searchParams.get('mandorId');
 
@@ -25,6 +28,7 @@ export async function GET(req: NextRequest) {
     if (blockCode) where.blokKode = blockCode;
     if (supervisorId) where.mandorId = supervisorId;
 
+    stage = 'database-query';
     const tasks = await prisma.fieldTask.findMany({
       where,
       include: {
@@ -34,6 +38,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ tanggalTarget: 'asc' }, { createdAt: 'desc' }],
     });
 
+    stage = 'response-mapping';
     const now = new Date();
     const mapped = tasks.map((t) => {
       const isOverdue =
@@ -46,8 +51,24 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ tasks: mapped });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    const error = err instanceof Error ? err : new Error('Unknown error');
+    const code =
+      typeof err === 'object' && err !== null && 'code' in err && typeof err.code === 'string'
+        ? err.code
+        : undefined;
+    const message = error.message
+      .replace(/postgres(?:ql)?:\/\/\S+/gi, '[redacted database url]')
+      .replace(/Bearer\s+\S+/gi, 'Bearer [redacted]')
+      .slice(0, 500);
+    console.error('[GET_ERROR]', {
+      stage,
+      statusFilter: statusFilter || undefined,
+      requestId: req.headers.get('x-request-id') || undefined,
+      errorName: error.name,
+      code,
+      message,
+    });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
