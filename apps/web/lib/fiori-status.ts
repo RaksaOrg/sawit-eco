@@ -54,8 +54,12 @@ export function riskStatusInfo(risiko: string): StatusInfo {
 export function orderStatusInfo(status: string): StatusInfo {
   switch (status) {
     case 'APPROVED':
+    case 'PAID':
     case 'DELIVERED':
-      return { state: 'Positive', label: status === 'APPROVED' ? 'Disetujui' : 'Terkirim' };
+      return {
+        state: 'Positive',
+        label: status === 'APPROVED' ? 'Disetujui' : status === 'PAID' ? 'Dibayar' : 'Terkirim',
+      };
     case 'SUBMITTED':
       return { state: 'Critical', label: 'Menunggu Persetujuan' };
     case 'REJECTED':

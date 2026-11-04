@@ -92,6 +92,7 @@
     "payment_ref": "Transfer Reference / Receipt No.",
     "payment_amount": "Amount Paid",
     "payment_success": "Payment confirmed successfully",
-    "payment_error": "Failed to process payment"
+    "payment_error": "Failed to process payment",
+    "status_paid": "Paid"
   }
 }

@@ -111,7 +111,15 @@ export async function POST(req: NextRequest) {
         productId,
         kuantitas: Number(quantity),
         blokKode: blockCode || 'ALL',
-        recommendationId: recommendationId || null,
+        recommendationId:
+          recommendationId && typeof recommendationId === 'string' && recommendationId.trim()
+            ? (
+                await prisma.agronomyLog.findFirst({
+                  where: { id: recommendationId.trim(), tenantId: tenant.id },
+                  select: { id: true },
+                })
+              )?.id || null
+            : null,
         alasanRekomendasi: recommendationReason || null,
       },
     });

@@ -149,10 +149,27 @@ export async function addToCartFromRecommendation(params: {
     cart = await prisma.cart.create({
       data: {
         tenantId: params.tenantId,
-        userId: params.userId,
+        userId:
+          params.userId && params.userId !== 'system' && params.userId !== 'system-user'
+            ? params.userId
+            : (
+                await prisma.user.findFirst({
+                  where: { tenantId: params.tenantId },
+                  select: { id: true },
+                })
+              )?.id || params.userId,
         status: 'ACTIVE',
       },
     });
+  }
+
+  let validLogId: string | null = null;
+  if (params.recommendationId && params.recommendationId.trim()) {
+    const log = await prisma.agronomyLog.findFirst({
+      where: { id: params.recommendationId.trim(), tenantId: params.tenantId },
+      select: { id: true },
+    });
+    if (log) validLogId = log.id;
   }
 
   const item = await prisma.cartItem.create({
@@ -161,19 +178,21 @@ export async function addToCartFromRecommendation(params: {
       productId: params.productId,
       kuantitas: params.quantity,
       blokKode: params.blockCode,
-      recommendationId: params.recommendationId,
+      recommendationId: validLogId,
       alasanRekomendasi: params.recommendationReason,
     },
   });
 
-  await prisma.recommendationLedger.create({
-    data: {
-      tenantId: params.tenantId,
-      agronomyLogId: params.recommendationId,
-      stage: 'CART_ADDED',
-      metadata: JSON.stringify({ cartItemId: item.id, kuantitas: params.quantity }),
-    },
-  });
+  if (validLogId) {
+    await prisma.recommendationLedger.create({
+      data: {
+        tenantId: params.tenantId,
+        agronomyLogId: validLogId,
+        stage: 'CART_ADDED',
+        metadata: JSON.stringify({ cartItemId: item.id, kuantitas: params.quantity }),
+      },
+    });
+  }
 
   return { cart, item };
 }
@@ -198,7 +217,10 @@ export async function checkoutAndApproveOrder(params: {
   const order = await prisma.order.create({
     data: {
       tenantId: params.tenantId,
-      userId: params.userId,
+      userId:
+        params.userId && params.userId !== 'system' && params.userId !== 'system-user'
+          ? params.userId
+          : cart.userId,
       cartId: cart.id,
       status: 'APPROVED',
       totalHarga,
@@ -226,7 +248,7 @@ export async function checkoutAndApproveOrder(params: {
     const task = await prisma.fieldTask.create({
       data: {
         tenantId: params.tenantId,
-        kodeTugas: `TASK-${Date.now().toString().slice(-6)}-${item.blokKode}`,
+        kodeTugas: `TASK-${Date.now().toString().slice(-6)}-${item.blokKode}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
         blokKode: item.blokKode,
         aktivitas: `Aplikasi Sarana: ${item.product.nama}`,
         deskripsi: item.alasanRekomendasi || 'Aplikasi produk hasil rekomendasi agronomi',
