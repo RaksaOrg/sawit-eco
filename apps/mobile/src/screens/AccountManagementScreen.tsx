@@ -1,22 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Switch } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import {
-  AppButton,
-  AppCard,
-  AppScreen,
-} from '../components/AppComponents';
+import { AppButton, AppCard, AppScreen } from '../components/AppComponents';
 import { foundationTokens } from '../theme/foundation/tokens';
 import { semanticTokens } from '../theme/semantic/tokens';
 import { useMobileAppStore } from '../state/store';
@@ -37,7 +27,13 @@ export function AccountManagementScreen({
   const t = createTranslator(language);
 
   useEffect(() => {
-    if (route?.params?.verification === 'success') setSaveSuccess(true);
+    if (route?.params?.verification === 'success') {
+      setSaveSuccess(true);
+      setVerificationError(false);
+    } else if (route?.params?.verification === 'error') {
+      setSaveSuccess(false);
+      setVerificationError(true);
+    }
   }, [route?.params?.verification]);
 
   // Validation schema with i18n messages
@@ -57,6 +53,7 @@ export function AccountManagementScreen({
 
   const [accountNotification, setAccountNotification] = useState(true);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [verificationError, setVerificationError] = useState(false);
 
   const {
     control,
@@ -97,16 +94,8 @@ export function AccountManagementScreen({
       <View style={styles.managementContainer}>
         {/* Header Title with Back Button */}
         <View style={styles.mgmtTitleRow}>
-          <Pressable
-            style={styles.backButton}
-            onPress={() => navigation?.goBack()}
-            hitSlop={8}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={22}
-              color={semanticTokens.color.textPrimary}
-            />
+          <Pressable style={styles.backButton} onPress={() => navigation?.goBack()} hitSlop={8}>
+            <Ionicons name="arrow-back" size={22} color={semanticTokens.color.textPrimary} />
           </Pressable>
           <Text style={styles.mgmtTitle}>{t('account.manage_title')}</Text>
         </View>
@@ -116,21 +105,13 @@ export function AccountManagementScreen({
         <AppCard style={styles.profileSummaryCard}>
           <View style={styles.summaryRow}>
             <View style={styles.summaryAvatarCircle}>
-              <Ionicons
-                name="person"
-                size={30}
-                color={semanticTokens.color.pdp}
-              />
+              <Ionicons name="person" size={30} color={semanticTokens.color.pdp} />
             </View>
 
             <View style={styles.summaryInfoCol}>
-              <Text style={styles.summaryName}>
-                {watchedFullName.trim() || t('common.empty')}
-              </Text>
+              <Text style={styles.summaryName}>{watchedFullName.trim() || t('common.empty')}</Text>
               <View style={styles.roleBadge}>
-                <Text style={styles.roleBadgeText}>
-                  {session?.role || 'USER'}
-                </Text>
+                <Text style={styles.roleBadgeText}>{session?.role || 'USER'}</Text>
               </View>
             </View>
 
@@ -204,11 +185,7 @@ export function AccountManagementScreen({
           {/* Field Nomor telepon */}
           <View style={styles.fieldItem}>
             <View style={styles.fieldLabelRow}>
-              <Ionicons
-                name="call-outline"
-                size={15}
-                color={semanticTokens.color.textSecondary}
-              />
+              <Ionicons name="call-outline" size={15} color={semanticTokens.color.textSecondary} />
               <Text style={styles.fieldCaption}>{t('account.phone')}</Text>
             </View>
             <Controller
@@ -234,11 +211,7 @@ export function AccountManagementScreen({
           {/* Field Email */}
           <View style={styles.fieldItem}>
             <View style={styles.fieldLabelRow}>
-              <Ionicons
-                name="mail-outline"
-                size={15}
-                color={semanticTokens.color.textSecondary}
-              />
+              <Ionicons name="mail-outline" size={15} color={semanticTokens.color.textSecondary} />
               <Text style={styles.fieldCaption}>{t('account.email')}</Text>
             </View>
             <Controller
@@ -268,17 +241,11 @@ export function AccountManagementScreen({
           {/* Kata sandi row */}
           <View style={styles.securityRow}>
             <View style={styles.securityIconCircle}>
-              <Ionicons
-                name="key-outline"
-                size={18}
-                color={semanticTokens.color.pdp}
-              />
+              <Ionicons name="key-outline" size={18} color={semanticTokens.color.pdp} />
             </View>
             <View style={styles.securityTextCol}>
               <Text style={styles.securityTitle}>{t('account.password')}</Text>
-              <Text style={styles.securitySubtitle}>
-                {t('account.password_last_updated')}
-              </Text>
+              <Text style={styles.securitySubtitle}>{t('account.password_last_updated')}</Text>
             </View>
             <Pressable hitSlop={8}>
               <Text style={styles.actionLinkText}>{t('account.change')}</Text>
@@ -299,9 +266,7 @@ export function AccountManagementScreen({
               <Text style={styles.securityTitle}>{t('account.two_factor')}</Text>
             </View>
             <View style={styles.unverifiedBadge}>
-              <Text style={styles.unverifiedBadgeText}>
-                {t('account.not_activated')}
-              </Text>
+              <Text style={styles.unverifiedBadgeText}>{t('account.not_activated')}</Text>
             </View>
           </View>
         </AppCard>
@@ -312,11 +277,7 @@ export function AccountManagementScreen({
           {/* Notifikasi akun */}
           <View style={styles.securityRow}>
             <View style={styles.securityIconCircle}>
-              <Ionicons
-                name="notifications-outline"
-                size={18}
-                color={semanticTokens.color.pdp}
-              />
+              <Ionicons name="notifications-outline" size={18} color={semanticTokens.color.pdp} />
             </View>
             <View style={styles.securityTextCol}>
               <Text style={styles.securityTitle}>{t('account.notifications')}</Text>
@@ -336,16 +297,10 @@ export function AccountManagementScreen({
           {/* Perlindungan data pribadi (PDP) */}
           <View style={styles.securityRow}>
             <View style={styles.securityIconCircle}>
-              <Ionicons
-                name="lock-closed-outline"
-                size={18}
-                color={semanticTokens.color.pdp}
-              />
+              <Ionicons name="lock-closed-outline" size={18} color={semanticTokens.color.pdp} />
             </View>
             <View style={styles.securityTextCol}>
-              <Text style={styles.securityTitle}>
-                {t('account.pdp')}
-              </Text>
+              <Text style={styles.securityTitle}>{t('account.pdp')}</Text>
             </View>
             <View style={styles.pdpActiveBadge}>
               <Text style={styles.pdpActiveBadgeText}>{t('account.active')}</Text>
@@ -357,19 +312,20 @@ export function AccountManagementScreen({
         <AppButton
           label={saveSuccess ? t('account.saved_success') : t('account.save_changes')}
           variant="primary"
-           onPress={() => navigation?.navigate('SelfieVerification', { source: 'AccountManagement' })}
+          onPress={() =>
+            navigation?.navigate('SelfieVerification', { source: 'AccountManagement' })
+          }
           loading={isSubmitting}
           fullWidth
           height={48}
           radius={tTokens.radius.md}
           style={{ backgroundColor: semanticTokens.color.pdp, marginTop: tTokens.spacing.sm }}
         />
+        {verificationError ? (
+          <Text style={styles.fieldErrorText}>{t('account.verification_failed')}</Text>
+        ) : null}
 
-        <Pressable
-          style={styles.cancelButton}
-          onPress={() => navigation?.goBack()}
-          hitSlop={8}
-        >
+        <Pressable style={styles.cancelButton} onPress={() => navigation?.goBack()} hitSlop={8}>
           <Text style={styles.cancelButtonText}>{t('account.cancel')}</Text>
         </Pressable>
       </View>

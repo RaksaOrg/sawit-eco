@@ -1,22 +1,42 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppScreen } from '../components/AppComponents';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
-import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
+import {
+  Camera,
+  useCameraDevice,
+  useCameraPermission,
+  useFrameOutput,
+  usePhotoOutput,
+} from 'react-native-vision-camera';
+import { createFaceDetector } from 'react-native-vision-camera-face-detector';
 import { Ionicons } from '@expo/vector-icons';
 import { createTranslator, type TranslationKey } from '../i18n';
 import { useMobileAppStore } from '../state/store';
+import { scheduleOnRN } from 'react-native-worklets';
+import * as FileSystem from 'expo-file-system';
+import { apiRequest } from '../core/api/client';
 
-const STEP_COUNTS: TranslationKey[] = [
-  'selfie.step_count1',
-  'selfie.step_count2',
-  'selfie.step_count3',
-];
-const STEPS: [TranslationKey, TranslationKey][] = [
-  ['selfie.step1_title', 'selfie.step1_description'],
-  ['selfie.step2_title', 'selfie.step2_description'],
-  ['selfie.step3_title', 'selfie.step3_description'],
-];
+const STEPS: Record<'right' | 'left' | 'blink', [TranslationKey, TranslationKey]> = {
+  right: ['selfie.step1_title', 'selfie.step1_description'],
+  left: ['selfie.step2_title', 'selfie.step2_description'],
+  blink: ['selfie.step3_title', 'selfie.step3_description'],
+};
+type ChallengeStep = keyof typeof STEPS;
+type DetectedFace = {
+  bounds: { x: number; y: number; width: number; height: number };
+  frameWidth: number;
+  frameHeight: number;
+  yawAngle: number;
+  leftEyeOpenProbability?: number;
+  rightEyeOpenProbability?: number;
+  leftEyeVisible: boolean;
+  rightEyeVisible: boolean;
+  mouthVisible: boolean;
+};
+
+function createChallengeOrder(): ChallengeStep[] {
+  return Math.random() < 0.5 ? ['right', 'left', 'blink'] : ['left', 'right', 'blink'];
+}
 
 const COLORS = {
   navy: '#102957',
@@ -36,15 +56,89 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   const device = useCameraDevice('front');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [step, setStep] = useState(0);
+  const [challengeOrder, setChallengeOrder] = useState<ChallengeStep[]>(createChallengeOrder);
+  const activeStep = challengeOrder[step];
   const [started, setStarted] = useState(false);
+  const [verifying, setVerifying] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const [previewReady, setPreviewReady] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
   const [faceCentered, setFaceCentered] = useState(false);
-  const [eyesVisible, setEyesVisible] = useState(false);
-  const [mouthVisible, setMouthVisible] = useState(false);
+  const [faceFeaturesVisible, setFaceFeaturesVisible] = useState(false);
+  const [brightness, setBrightness] = useState<number | null>(null);
   const cameraActive = hasPermission && !!device;
-  const faceHandler = useRef<(faces: Face[]) => void>(() => undefined);
+  const adequateLighting = brightness !== null && brightness >= 65;
+  const livenessActive = started || verifying;
+  const faceHandler = useRef<(faces: DetectedFace[]) => void>(() => undefined);
+  const challengePaths = useRef<string[]>([]);
+  const captureLock = useRef(false);
+  const lastBrightnessUpdate = useRef(0);
+  const luminanceHandler = useRef((value: number) => {
+    const now = Date.now();
+    if (now - lastBrightnessUpdate.current < 700) return;
+    lastBrightnessUpdate.current = now;
+    setBrightness(value);
+  });
+  const photoOutput = usePhotoOutput({ containerFormat: 'jpeg', quality: 0.7 });
+  const faceDetector = useMemo(
+    () =>
+      createFaceDetector({
+        performanceMode: 'fast',
+        runClassifications: true,
+        runLandmarks: true,
+        cameraFacing: 'front',
+      }),
+    [],
+  );
+  const reportFaces = useMemo(() => (faces: DetectedFace[]) => faceHandler.current(faces), []);
+  const reportLuminance = useMemo(() => (value: number) => luminanceHandler.current(value), []);
+  const frameOutput = useFrameOutput({
+    pixelFormat: 'yuv',
+    enablePreviewSizedOutputBuffers: true,
+    onFrame: (frame) => {
+      'worklet';
+      try {
+        const detectedFaces = faceDetector.detectFaces(frame).map((face) => ({
+          bounds: {
+            x: face.bounds.x,
+            y: face.bounds.y,
+            width: face.bounds.width,
+            height: face.bounds.height,
+          },
+          frameWidth: face.frameWidth,
+          frameHeight: face.frameHeight,
+          yawAngle: face.yawAngle,
+          leftEyeOpenProbability: face.leftEyeOpenProbability,
+          rightEyeOpenProbability: face.rightEyeOpenProbability,
+          leftEyeVisible: !!face.landmarks?.LEFT_EYE,
+          rightEyeVisible: !!face.landmarks?.RIGHT_EYE,
+          mouthVisible: !!face.landmarks?.MOUTH_BOTTOM,
+        }));
+        scheduleOnRN(reportFaces, detectedFaces);
+        const plane = frame.getPlanes()[0];
+        if (!plane) return;
+        const pixels = new Uint8Array(plane.getPixelBuffer());
+        const stride = plane.bytesPerRow;
+        const startX = Math.floor(plane.width * 0.25);
+        const endX = Math.floor(plane.width * 0.75);
+        const startY = Math.floor(plane.height * 0.2);
+        const endY = Math.floor(plane.height * 0.8);
+        const stepX = Math.max(1, Math.floor((endX - startX) / 8));
+        const stepY = Math.max(1, Math.floor((endY - startY) / 8));
+        let total = 0;
+        let count = 0;
+        for (let y = startY; y < endY; y += stepY) {
+          for (let x = startX; x < endX; x += stepX) {
+            total += pixels[y * stride + x];
+            count += 1;
+          }
+        }
+        if (count > 0) scheduleOnRN(reportLuminance, total / count);
+      } finally {
+        frame.dispose();
+      }
+    },
+  });
 
   useEffect(() => {
     if (hasPermission || permissionRequested) return;
@@ -55,31 +149,22 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
       })
       .catch(() => setCameraError(t('selfie.permission_error')));
   }, [hasPermission, permissionRequested, requestPermission]);
-  const faceDetectorOutput = useMemo(
-    () =>
-      createFaceDetectorOutput({
-        performanceMode: 'fast',
-        runClassifications: true,
-        runLandmarks: true,
-        mirrorMode: 'on',
-        onFacesDetected: (faces) => faceHandler.current(faces),
-        onError: () => setCameraError(t('selfie.detector_error')),
-      }),
-    [],
-  );
-
   const start = () => {
     if (!cameraActive) {
       Alert.alert(t('selfie.not_ready_title'), cameraError || t('selfie.not_ready_message'));
       return;
     }
+    challengePaths.current = [];
+    captureLock.current = false;
+    setChallengeOrder(createChallengeOrder());
     setStarted(true);
     setStep(0);
   };
 
-  const handleFacesDetected = (faces: Face[]) => {
+  const handleFacesDetected = (faces: DetectedFace[]) => {
     const face = faces[0];
     const centered =
+      faces.length === 1 &&
       !!face &&
       face.frameWidth > 0 &&
       face.frameHeight > 0 &&
@@ -87,40 +172,89 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
       Math.abs((face.bounds.y + face.bounds.height / 2) / face.frameHeight - 0.5) < 0.25 &&
       face.bounds.width / face.frameWidth > 0.18 &&
       face.bounds.width / face.frameWidth < 0.75;
-    const eyesDetected =
-      !!face?.landmarks?.LEFT_EYE &&
-      !!face.landmarks.RIGHT_EYE &&
-      face.leftEyeOpenProbability !== undefined &&
-      face.rightEyeOpenProbability !== undefined;
-    const mouthDetected = !!face?.landmarks?.MOUTH_BOTTOM;
+    const faceFeaturesDetected =
+      !!face?.leftEyeVisible && !!face.rightEyeVisible && !!face.mouthVisible;
     setFaceCentered((current) => (current === centered ? current : centered));
-    setEyesVisible((current) => (current === eyesDetected ? current : eyesDetected));
-    setMouthVisible((current) => (current === mouthDetected ? current : mouthDetected));
+    setFaceFeaturesVisible((current) =>
+      current === faceFeaturesDetected ? current : faceFeaturesDetected,
+    );
     if (!started || !face) return;
     const valid =
-      step === 0
+      adequateLighting &&
+      (activeStep === 'right'
         ? centered && face.yawAngle > 15
-        : step === 1
+        : activeStep === 'left'
           ? centered && face.yawAngle < -15
           : face.leftEyeOpenProbability !== undefined &&
             face.rightEyeOpenProbability !== undefined &&
             face.leftEyeOpenProbability < 0.35 &&
-            face.rightEyeOpenProbability < 0.35;
-    if (valid) next();
+            face.rightEyeOpenProbability < 0.35);
+    if (valid && !captureLock.current) void captureChallengeStep();
   };
 
   faceHandler.current = handleFacesDetected;
 
-  const next = () => {
-    if (step < STEPS.length - 1) {
-      setStep((current) => current + 1);
-      return;
+  const captureChallengeStep = async () => {
+    captureLock.current = true;
+    let photo;
+    let keepFrames = false;
+    try {
+      photo = await photoOutput.capturePhoto({ flashMode: 'off' }, {});
+      challengePaths.current.push(await photo.saveToTemporaryFileAsync());
+      if (step < challengeOrder.length - 1) {
+        keepFrames = true;
+        setStep((current) => current + 1);
+        return;
+      }
+      setStarted(false);
+      setVerifying(true);
+      const form = new FormData();
+      form.append('challengeOrder', challengeOrder.join(','));
+      challengePaths.current.forEach((path, index) => {
+        form.append('frames', {
+          uri: path.startsWith('file://') ? path : `file://${path}`,
+          name: `liveness-${index + 1}.jpg`,
+          type: 'image/jpeg',
+        } as unknown as Blob);
+      });
+      const result = await apiRequest<{ isLive: boolean }>('/api/verification/liveness', {
+        method: 'POST',
+        body: form,
+      });
+      setVerifying(false);
+      if (result.isLive) {
+        navigation?.navigate?.('AccountManagement', {
+          verification: 'success',
+          source: route?.params?.source || 'AccountManagement',
+        });
+      } else {
+        navigation?.navigate?.('AccountManagement', {
+          verification: 'error',
+          source: route?.params?.source || 'AccountManagement',
+        });
+      }
+    } catch {
+      setStarted(false);
+      setVerifying(false);
+      setCameraError(t('selfie.verification_error'));
+      navigation?.navigate?.('AccountManagement', {
+        verification: 'error',
+        source: route?.params?.source || 'AccountManagement',
+      });
+    } finally {
+      photo?.dispose();
+      if (!keepFrames) {
+        await Promise.all(
+          challengePaths.current.map((path) =>
+            FileSystem.deleteAsync(path.startsWith('file://') ? path : `file://${path}`, {
+              idempotent: true,
+            }).catch(() => undefined),
+          ),
+        );
+        challengePaths.current = [];
+      }
+      captureLock.current = false;
     }
-    setStarted(false);
-    navigation?.navigate?.('AccountManagement', {
-      verification: 'success',
-      source: route?.params?.source || 'AccountManagement',
-    });
   };
 
   return (
@@ -142,13 +276,13 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
               device={device!}
               isActive={cameraActive}
               implementationMode="compatible"
-              outputs={[faceDetectorOutput]}
+              outputs={[photoOutput, frameOutput]}
               onPreviewStarted={() => {
                 setPreviewReady(true);
                 setCameraError('');
               }}
               onPreviewStopped={() => setPreviewReady(false)}
-              onError={() => setCameraError(t('selfie.camera_error'))}
+              onError={(error) => setCameraError(`${t('selfie.camera_error')} (${error.message})`)}
               pointerEvents="auto"
               onLayout={() => undefined}
               nativeID="selfie-camera"
@@ -165,7 +299,9 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           <View style={[styles.corner, styles.topRight]} />
           <View style={[styles.corner, styles.bottomLeft]} />
           <View style={[styles.corner, styles.bottomRight]} />
-          <View style={styles.faceOval} />
+          <View
+            style={[styles.faceOval, livenessActive && faceCentered && styles.faceOvalDetected]}
+          />
           <View style={styles.cameraStatus}>
             <View style={styles.activeDot} />
             <Text style={styles.statusText}>
@@ -186,61 +322,75 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           <Instruction
             icon="camera-outline"
             text={t('selfie.position_face')}
-            detected={started ? faceCentered : undefined}
+            detected={livenessActive ? faceCentered : undefined}
             status={
-              started ? (faceCentered ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+              livenessActive
+                ? faceCentered
+                  ? t('selfie.detected')
+                  : t('selfie.not_detected')
+                : undefined
             }
           />
           <Instruction
             icon="sunny-outline"
             text={t('selfie.lighting')}
-            detected={started ? eyesVisible : undefined}
+            detected={livenessActive ? adequateLighting : undefined}
             status={
-              started ? (eyesVisible ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+              livenessActive
+                ? adequateLighting
+                  ? t('selfie.detected')
+                  : t('selfie.not_detected')
+                : undefined
             }
           />
           <Instruction
             icon="glasses-outline"
             text={t('selfie.remove_accessories')}
-            detected={started ? mouthVisible : undefined}
+            detected={undefined}
             status={
-              started ? (mouthVisible ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+              livenessActive
+                ? faceFeaturesVisible
+                  ? t('selfie.face_features_detected')
+                  : t('selfie.not_detected')
+                : undefined
             }
           />
         </View>
-        {started && faceCentered && (
+        {livenessActive && faceCentered && (
           <View style={styles.stepCard}>
             <View style={styles.stepIllustration}>
               <Image
                 source={
-                  step === 2
+                  activeStep === 'blink'
                     ? require('../../assets/illustrations/liveness_3.png')
                     : require('../../assets/illustrations/liveness_2.png')
                 }
                 resizeMode="contain"
-                style={[styles.stepImage, step === 0 && styles.stepImageFlipped]}
+                style={[styles.stepImage, activeStep === 'right' && styles.stepImageFlipped]}
               />
             </View>
             <View style={styles.divider} />
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
-              <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
+              <Text style={styles.stepTitle}>{t(STEPS[activeStep][0])}</Text>
+              <Text style={styles.stepDescription}>{t(STEPS[activeStep][1])}</Text>
             </View>
           </View>
         )}
         <Pressable
           onPress={start}
-          disabled={started}
-          style={[styles.primaryButton, { display: started ? 'none' : undefined }]}
+          disabled={livenessActive}
+          style={[styles.primaryButton, { display: livenessActive ? 'none' : undefined }]}
         >
           <Ionicons name="scan-outline" size={25} color={COLORS.white} />
           <Text style={styles.primaryText}>{t('selfie.start')}</Text>
         </Pressable>
         <Pressable
-          style={started ? styles.secondaryLink : styles.secondaryButton}
+          style={livenessActive ? styles.secondaryLink : styles.secondaryButton}
           onPress={() => navigation?.goBack()}
         >
-          <Text style={[styles.secondaryText, started && { fontSize: 12, fontWeight: '600' }]}>
+          <Text
+            style={[styles.secondaryText, livenessActive && { fontSize: 12, fontWeight: '600' }]}
+          >
             {t('selfie.later')}
           </Text>
         </Pressable>
@@ -332,6 +482,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFF',
     borderRadius: 120,
   },
+  faceOvalDetected: { borderColor: COLORS.green },
   cameraStatus: {
     position: 'absolute',
     top: 8,

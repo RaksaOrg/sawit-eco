@@ -36,7 +36,7 @@ export const useMobileAppStore = create<MobileAppState>((set, get) => ({
   session: null,
   isAuthenticated: false,
   isLoadingSession: true,
-  language: 'id',
+  language: 'en',
   pendingSyncCount: 0,
   isSyncing: false,
   cart: [],
