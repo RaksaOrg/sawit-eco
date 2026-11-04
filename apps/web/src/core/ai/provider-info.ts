@@ -31,7 +31,7 @@ export function detectProvider(endpoint?: string | null): ProviderInfo {
   if (lower.includes(':11434')) {
     return { id: 'ollama', label: 'Ollama Local' };
   }
-  if (lower.includes('0.0.0.0') || lower.includes('127.0.0.1')) {
+  if (lower.includes('localhost') || lower.includes('0.0.0.0') || lower.includes('127.0.0.1')) {
     return { id: 'local', label: 'Local endpoint' };
   }
   return { id: 'openai-compatible', label: 'OpenAI-compatible provider' };

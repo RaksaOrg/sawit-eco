@@ -40,7 +40,7 @@ export async function submitOrderFromCart(input: SubmitOrderInput) {
   const order = await prisma.order.create({
     data: {
       tenantId: input.tenantId,
-      userId: input.userId,
+      userId: input.userId && input.userId !== 'system' ? input.userId : cart.userId,
       cartId: cart.id,
       status: 'SUBMITTED',
       approvalStatus: 'PENDING',
@@ -125,7 +125,7 @@ export async function decideOrder(input: {
     const task = await prisma.fieldTask.create({
       data: {
         tenantId: input.tenantId,
-        kodeTugas: `TASK-${Date.now().toString().slice(-6)}-${item.blokKode}`,
+        kodeTugas: `TASK-${Date.now().toString().slice(-6)}-${item.blokKode}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`,
         blokKode: item.blokKode,
         aktivitas: `Aplikasi Sarana: ${item.product.nama}`,
         deskripsi: item.alasanRekomendasi || 'Aplikasi produk hasil rekomendasi agronomi',
