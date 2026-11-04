@@ -1,4 +1,5 @@
 import { apiErrorSchema } from '@sawit/contracts';
+import { fetch as expoFetch } from 'expo/fetch';
 import { readSession } from '../auth/session';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
@@ -9,7 +10,9 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     const token = session?.token;
     const tenantId = session?.tenantId;
 
-    const response = await fetch(`${BASE_URL}${path}`, {
+    const isMultipart = typeof FormData !== 'undefined' && options.body instanceof FormData;
+    const requestFetch = isMultipart ? expoFetch : fetch;
+    const response = await requestFetch(`${BASE_URL}${path}`, {
       ...options,
       headers: {
         ...(typeof FormData !== 'undefined' && options.body instanceof FormData

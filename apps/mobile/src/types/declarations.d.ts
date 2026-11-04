@@ -129,17 +129,6 @@ declare module 'expo-av' {
   export const Video: any;
 }
 
-declare module 'expo-file-system' {
-  export const documentDirectory: string;
-  export const writeAsStringAsync: any;
-  export const readAsStringAsync: any;
-  export const deleteAsync: any;
-  export const EncodingType: {
-    Base64: string;
-    UTF8: string;
-  };
-}
-
 declare module 'expo-font' {
   export const useFonts: any;
   export const loadAsync: any;

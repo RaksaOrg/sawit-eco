@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { createTranslator, type TranslationKey } from '../i18n';
 import { useMobileAppStore } from '../state/store';
 import { scheduleOnRN } from 'react-native-worklets';
-import * as FileSystem from 'expo-file-system';
+import { File } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { apiRequest } from '../core/api/client';
 
 const STEPS: Record<'right' | 'left' | 'blink', [TranslationKey, TranslationKey]> = {
@@ -150,7 +151,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
       .catch(() => setCameraError(t('selfie.permission_error')));
   }, [hasPermission, permissionRequested, requestPermission]);
   const start = () => {
-    if (!cameraActive) {
+    if (!cameraActive || !previewReady) {
       Alert.alert(t('selfie.not_ready_title'), cameraError || t('selfie.not_ready_message'));
       return;
     }
@@ -198,7 +199,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     setVerifying(false);
     if (route?.params?.source === 'Today') {
       if (verification === 'error') {
-        Alert.alert(t('selfie.not_ready_title'), t('selfie.verification_error'));
+        Alert.alert(t('account.verification_failed'), t('selfie.verification_error'));
       }
       navigation?.goBack();
       return;
@@ -229,11 +230,11 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         form.append('attendanceAction', route.params.attendanceAction);
       }
       challengePaths.current.forEach((path, index) => {
-        form.append('frames', {
-          uri: path.startsWith('file://') ? path : `file://${path}`,
-          name: `liveness-${index + 1}.jpg`,
-          type: 'image/jpeg',
-        } as unknown as Blob);
+        form.append(
+          'frames',
+          new File(path.startsWith('file://') ? path : `file://${path}`),
+          `liveness-${index + 1}.jpg`,
+        );
       });
       const result = await apiRequest<{ isLive: boolean }>('/api/verification/liveness', {
         method: 'POST',
@@ -242,7 +243,6 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
       finishVerification(result.isLive ? 'success' : 'error');
     } catch {
       setStarted(false);
-      setCameraError(t('selfie.verification_error'));
       finishVerification('error');
     } finally {
       photo?.dispose();
@@ -381,8 +381,12 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         )}
         <Pressable
           onPress={start}
-          disabled={livenessActive}
-          style={[styles.primaryButton, { display: livenessActive ? 'none' : undefined }]}
+          disabled={livenessActive || !cameraActive || !previewReady}
+          style={[
+            styles.primaryButton,
+            { display: livenessActive ? 'none' : undefined },
+            (!cameraActive || !previewReady) && styles.primaryButtonDisabled,
+          ]}
         >
           <Ionicons name="scan-outline" size={25} color={COLORS.white} />
           <Text style={styles.primaryText}>{t('selfie.start')}</Text>
@@ -569,6 +573,7 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: COLORS.primary,
   },
+  primaryButtonDisabled: { opacity: 0.5 },
   primaryText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
   secondaryLink: {
     alignSelf: 'center',
