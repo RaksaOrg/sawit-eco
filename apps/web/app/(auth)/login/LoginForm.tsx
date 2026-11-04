@@ -55,7 +55,7 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
       formData.set('email', email);
       formData.set('password', password);
       const res = await fetch('/api/auth/login', { method: 'POST', body: formData });
-      if (res.url.includes('/dashboard')) {
+      if (res.ok) {
         openDashboard();
       } else {
         setError(true);
@@ -76,7 +76,7 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
       formData.set('email', tenant.email);
       formData.set('password', 'owner123');
       const res = await fetch('/api/auth/login', { method: 'POST', body: formData });
-      if (res.url.includes('/dashboard')) {
+      if (res.ok) {
         openDashboard();
       } else {
         setDemoFailed(true);

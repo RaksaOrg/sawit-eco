@@ -11,9 +11,10 @@ export async function POST(req: NextRequest) {
 
   const tenant = email ? await prisma.tenant.findUnique({ where: { email } }) : null;
   if (!tenant || !verifyPassword(password, tenant.passwordHash)) {
-    const url = new URL('/login', req.url);
-    url.searchParams.set('error', '1');
-    return NextResponse.redirect(url);
+    return NextResponse.json(
+      { success: false, error: { code: 'INVALID_CREDENTIALS' } },
+      { status: 401 },
+    );
   }
 
   const owner = await prisma.user.findFirst({
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
     select: { id: true, role: true },
   });
 
-  const res = NextResponse.redirect(new URL('/dashboard', req.url));
+  const res = NextResponse.json({ success: true });
   const c = sessionCookie();
   res.cookies.set(
     c.name,
