@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
-import { useFaceDetectorOutput } from 'react-native-vision-camera-face-detector';
+import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
 import { Ionicons } from '@expo/vector-icons';
 
 const COLORS = {
@@ -32,38 +32,60 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   const [previewReady, setPreviewReady] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
   const cameraActive = hasPermission && !!device;
+  const faceHandler = useRef<(faces: Face[]) => void>(() => undefined);
 
   useEffect(() => {
     if (hasPermission || permissionRequested) return;
     setPermissionRequested(true);
-    requestPermission().then((granted) => {
-      if (!granted) setCameraError('Izin kamera ditolak. Aktifkan izin kamera di pengaturan perangkat.');
-    }).catch(() => setCameraError('Izin kamera tidak dapat diminta. Periksa pengaturan perangkat.'));
+    requestPermission()
+      .then((granted) => {
+        if (!granted)
+          setCameraError('Izin kamera ditolak. Aktifkan izin kamera di pengaturan perangkat.');
+      })
+      .catch(() =>
+        setCameraError('Izin kamera tidak dapat diminta. Periksa pengaturan perangkat.'),
+      );
   }, [hasPermission, permissionRequested, requestPermission]);
-  const faceDetectorOutput = useFaceDetectorOutput({
+  const faceDetectorOutput = useMemo(() => createFaceDetectorOutput({
     performanceMode: 'fast',
     runClassifications: true,
     runLandmarks: true,
     mirrorMode: 'on',
-    onFacesDetected: (faces) => handleFacesDetected(faces),
-    onError: () => Alert.alert('Kamera error', 'Face detection tidak dapat dijalankan.'),
-  });
+    onFacesDetected: (faces) => faceHandler.current(faces),
+    onError: () => setCameraError('Face detection gagal menerima frame dari kamera.'),
+  }), []);
 
   const start = () => {
     if (!cameraActive) {
-      Alert.alert('Kamera belum siap', cameraError || 'Tunggu izin kamera dan preview siap sebelum melanjutkan.');
+      Alert.alert(
+        'Kamera belum siap',
+        cameraError || 'Tunggu izin kamera dan preview siap sebelum melanjutkan.',
+      );
       return;
     }
     setStarted(true);
     setStep(0);
   };
 
-  const handleFacesDetected = (faces: Array<{ yawAngle: number; leftEyeOpenProbability?: number; rightEyeOpenProbability?: number }>) => {
+  const handleFacesDetected = (
+    faces: Array<{
+      yawAngle: number;
+      leftEyeOpenProbability?: number;
+      rightEyeOpenProbability?: number;
+    }>,
+  ) => {
     const face = faces[0];
     if (!started || !face) return;
-    const valid = step === 0 ? face.yawAngle > 15 : step === 1 ? face.yawAngle < -15 : (face.leftEyeOpenProbability ?? 1) < 0.35 && (face.rightEyeOpenProbability ?? 1) < 0.35;
+    const valid =
+      step === 0
+        ? face.yawAngle > 15
+        : step === 1
+          ? face.yawAngle < -15
+          : (face.leftEyeOpenProbability ?? 1) < 0.35 && (face.rightEyeOpenProbability ?? 1) < 0.35;
     if (valid) next();
   };
+
+  faceHandler.current = handleFacesDetected;
 
   const next = () => {
     if (step < STEPS.length - 1) {
@@ -123,12 +145,29 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.cameraContainer}>
             {cameraActive ? (
-              <Camera style={styles.cameraPreview} device={device!} isActive={cameraActive} implementationMode="compatible" outputs={[faceDetectorOutput]} onPreviewStarted={() => { setPreviewReady(true); setCameraError(''); }} onPreviewStopped={() => setPreviewReady(false)} onError={(error) => setCameraError(error.message || 'Kamera gagal dimulai.')} pointerEvents="auto" onLayout={() => undefined} nativeID="selfie-camera" />
+              <Camera
+                style={styles.cameraPreview}
+                device={device!}
+                isActive={cameraActive}
+                implementationMode="compatible"
+                outputs={[faceDetectorOutput]}
+                onPreviewStarted={() => {
+                  setPreviewReady(true);
+                  setCameraError('');
+                }}
+                onPreviewStopped={() => setPreviewReady(false)}
+                onError={(error) => setCameraError(error.message || 'Kamera gagal dimulai.')}
+                pointerEvents="auto"
+                onLayout={() => undefined}
+                nativeID="selfie-camera"
+              />
             ) : (
               <View style={styles.placeholder}>
                 <Ionicons name="camera-outline" size={44} color="#8996B1" />
                 <Text style={styles.placeholderText}>
-                  {device ? 'Izinkan akses kamera untuk menampilkan wajah' : 'Kamera depan tidak terdeteksi pada perangkat ini'}
+                  {device
+                    ? 'Izinkan akses kamera untuk menampilkan wajah'
+                    : 'Kamera depan tidak terdeteksi pada perangkat ini'}
                 </Text>
               </View>
             )}
@@ -140,7 +179,15 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             <View style={styles.cameraStatus}>
               <View style={styles.activeDot} />
               <Text style={styles.statusText}>
-                {cameraError ? 'Kamera bermasalah' : !cameraActive ? device ? 'Izin kamera belum diberikan' : 'Kamera depan tidak tersedia' : previewReady ? 'Kamera aktif' : 'Menghubungkan kamera...'}
+                {cameraError
+                  ? 'Kamera bermasalah'
+                  : !cameraActive
+                    ? device
+                      ? 'Izin kamera belum diberikan'
+                      : 'Kamera depan tidak tersedia'
+                    : previewReady
+                      ? 'Kamera aktif'
+                      : 'Menghubungkan kamera...'}
               </Text>
             </View>
           </View>
