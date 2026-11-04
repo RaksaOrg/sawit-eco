@@ -199,7 +199,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     let photo;
     let keepFrames = false;
     try {
-      photo = await photoOutput.capturePhoto({ flashMode: 'off' }, {});
+      photo = await photoOutput.capturePhoto({ flashMode: 'off', enableShutterSound: false }, {});
       challengePaths.current.push(await photo.saveToTemporaryFileAsync());
       if (step < challengeOrder.length - 1) {
         keepFrames = true;
