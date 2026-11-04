@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -64,42 +58,7 @@ export function LearningScreen({
   };
 
   return (
-    <AppScreen>
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>{t('login.brand1')}</Text>
-            <Text style={styles.brandEco}>{t('login.brand2')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <Pressable style={styles.bellButton} hitSlop={8}>
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-          <Pressable
-            style={styles.avatarButton}
-            hitSlop={8}
-            onPress={() => navigation?.navigate('Profile')}
-          >
-            <Ionicons
-              name="person"
-              size={17}
-              color={semanticTokens.color.surface}
-            />
-          </Pressable>
-        </View>
-      </View>
-
+    <AppScreen showTopHeader onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}>
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>{t('learning.title')}</Text>
         <Text style={styles.mainSubtitle}>
@@ -129,7 +88,11 @@ export function LearningScreen({
                     <Ionicons
                       name={module.kategori === 'K3' ? 'shield-checkmark' : 'leaf'}
                       size={32}
-                      color={module.kategori === 'K3' ? semanticTokens.color.warning : semanticTokens.color.brand}
+                      color={
+                        module.kategori === 'K3'
+                          ? semanticTokens.color.warning
+                          : semanticTokens.color.brand
+                      }
                     />
                   </View>
                 </View>
@@ -146,12 +109,20 @@ export function LearningScreen({
                   </View>
 
                   <View style={styles.metaRow}>
-                    <Ionicons name="time-outline" size={13} color={semanticTokens.color.textSecondary} />
+                    <Ionicons
+                      name="time-outline"
+                      size={13}
+                      color={semanticTokens.color.textSecondary}
+                    />
                     <Text style={styles.metaText}>
                       {module.durasiMenit} {t('common.unit_minute')}
                     </Text>
                     <Text style={styles.metaDivider}>|</Text>
-                    <Ionicons name="stats-chart" size={12} color={semanticTokens.color.textSecondary} />
+                    <Ionicons
+                      name="stats-chart"
+                      size={12}
+                      color={semanticTokens.color.textSecondary}
+                    />
                     <Text style={styles.metaText}>{levelName}</Text>
                   </View>
                 </View>
@@ -204,58 +175,6 @@ export function LearningScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-  logo: {
-    width: 32,
-    height: 32,
-  },
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.pdp,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   titleSection: {
     marginTop: tTokens.spacing.xs,
     marginBottom: tTokens.spacing.md,
