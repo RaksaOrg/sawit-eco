@@ -26,6 +26,7 @@
     "@ui5/webcomponents-fiori": "^2.28.1",
     "@ui5/webcomponents-icons": "^2.28.1",
     "@ui5/webcomponents-react": "^2.28.1",
+    "@sawit/contracts": "file:../../packages/contracts",
     "i18next": "^24.2.3",
     "i18next-browser-languagedetector": "^8.2.3",
     "lucide-react": "^0.468.0",
