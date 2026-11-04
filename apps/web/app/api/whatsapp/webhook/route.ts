@@ -8,6 +8,7 @@ import { downloadMedia, sendWhatsApp } from '@/lib/whatsapp';
 import { runAgent } from '@/lib/agent';
 import { maskPii } from '@/src/core/privacy/pdp-guard';
 import { transcribeAudio } from '@/lib/transcribe';
+import { recordModelTrigger } from '@/lib/model-trigger';
 
 function isValidSignature(raw: string, signature: string | null) {
   const secret = process.env.WA_APP_SECRET;
@@ -76,9 +77,21 @@ export async function POST(req: NextRequest) {
     if (msgType === 'audio') {
       const audioId = msgObj.audio?.id as string | undefined;
       if (!audioId) return NextResponse.json({ ok: true });
+      const startedAt = Date.now();
       try {
         const media = await downloadMedia(audioId);
         const transcript = await transcribeAudio(media.buffer, media.mime);
+        await recordModelTrigger({
+          tenantId: user.tenantId,
+          traceId: waId,
+          route: '/api/whatsapp/webhook',
+          provider: process.env.ASR_INFERENCE_ENDPOINT ? 'asr-inference' : 'local-fallback',
+          model: process.env.ASR_MODEL || 'whisper-large-v3',
+          operation: 'AUDIO_TRANSCRIPTION',
+          status: transcript ? 'SUCCEEDED' : 'FAILED',
+          startedAt,
+          errorCode: transcript ? undefined : 'TRANSCRIPTION_UNAVAILABLE',
+        });
         if (!transcript) {
           await sendWhatsApp(
             from,
@@ -87,7 +100,18 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: true });
         }
         text = transcript;
-      } catch {
+      } catch (error) {
+        await recordModelTrigger({
+          tenantId: user.tenantId,
+          traceId: waId,
+          route: '/api/whatsapp/webhook',
+          provider: 'asr-inference',
+          model: process.env.ASR_MODEL || 'whisper-large-v3',
+          operation: 'AUDIO_TRANSCRIPTION',
+          status: 'FAILED',
+          startedAt,
+          errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+        });
         await sendWhatsApp(from, 'Voice note gagal diproses. Mohon kirim sebagai teks.');
         return NextResponse.json({ ok: true });
       }
@@ -144,7 +168,37 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const { agent, reply } = await runAgent(safeText, tenant, image);
+    const modelStartedAt = Date.now();
+    let agent: string;
+    let reply: string;
+    try {
+      const result = await runAgent(safeText, tenant, image);
+      agent = result.agent;
+      reply = result.reply;
+      await recordModelTrigger({
+        tenantId: user.tenantId,
+        traceId: waId,
+        route: '/api/whatsapp/webhook',
+        provider: 'multi-provider',
+        model: agent,
+        operation: image ? 'VISION_AGENT' : 'TEXT_AGENT',
+        status: 'SUCCEEDED',
+        startedAt: modelStartedAt,
+      });
+    } catch (error) {
+      await recordModelTrigger({
+        tenantId: user.tenantId,
+        traceId: waId,
+        route: '/api/whatsapp/webhook',
+        provider: 'multi-provider',
+        model: 'agent-router',
+        operation: image ? 'VISION_AGENT' : 'TEXT_AGENT',
+        status: 'FAILED',
+        startedAt: modelStartedAt,
+        errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+      });
+      throw error;
+    }
 
     const blokKode =
       blocks.find((b) => safeText.toLowerCase().includes(b.kode.toLowerCase()))?.kode || 'UNKNOWN';

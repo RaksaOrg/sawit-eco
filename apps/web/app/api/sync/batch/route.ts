@@ -8,6 +8,7 @@ import { attendanceCreateSchema, lessonProgressSchema, syncBatchSchema } from '@
 import { hkValue } from '@/src/core/hris/kpi';
 import { maskPii } from '@/src/core/privacy/pdp-guard';
 import { querySamSegmentation } from '@/src/core/ai/sam';
+import { recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 
@@ -171,17 +172,43 @@ export async function POST(req: NextRequest) {
 
         let samSummary = '';
         if (data.photoBase64) {
-          const sam = await querySamSegmentation(
-            {
-              image: { mime: data.mimeType || 'image/jpeg', base64: data.photoBase64 },
-              targetType: 'LEAF_DEFECT',
-            },
-            process.env,
-            fetch,
-          );
-          samSummary = sam.isSimulated
-            ? ` Segmentasi SAM (simulasi): area ${sam.primaryMaskAreaPercentage}%.`
-            : ` Segmentasi SAM 3.1: area ${sam.primaryMaskAreaPercentage}% (${sam.detectedFeatures.join(', ')}).`;
+          const startedAt = Date.now();
+          try {
+            const sam = await querySamSegmentation(
+              {
+                image: { mime: data.mimeType || 'image/jpeg', base64: data.photoBase64 },
+                targetType: 'LEAF_DEFECT',
+              },
+              process.env,
+              fetch,
+            );
+            await recordModelTrigger({
+              tenantId: tenant.id,
+              traceId: event.id,
+              route: '/api/sync/batch',
+              provider: sam.isSimulated ? 'local-fallback' : 'sam-inference',
+              model: sam.modelUsed,
+              operation: 'IMAGE_SEGMENTATION',
+              status: 'SUCCEEDED',
+              startedAt,
+            });
+            samSummary = sam.isSimulated
+              ? ` Segmentasi SAM (simulasi): area ${sam.primaryMaskAreaPercentage}%.`
+              : ` Segmentasi SAM 3.1: area ${sam.primaryMaskAreaPercentage}% (${sam.detectedFeatures.join(', ')}).`;
+          } catch (error) {
+            await recordModelTrigger({
+              tenantId: tenant.id,
+              traceId: event.id,
+              route: '/api/sync/batch',
+              provider: 'sam-inference',
+              model: process.env.SAM_MODEL || 'sam-3.1',
+              operation: 'IMAGE_SEGMENTATION',
+              status: 'FAILED',
+              startedAt,
+              errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+            });
+            throw error;
+          }
         }
 
         await prisma.agronomyLog.create({

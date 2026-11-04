@@ -5,6 +5,7 @@ import { runFourStageAgentPipeline } from '@/src/core/agent/multi-stage-pipeline
 import { queryMetaInferenceEngine } from '@/src/core/ai/inference';
 import { agentPipelineRequestSchema } from '@sawit/contracts';
 import { isModelMockEnabled } from '@/src/core/ai/mock';
+import { recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,13 +69,41 @@ export async function POST(req: NextRequest) {
         });
       },
       queryInference: async (reqPayload) => {
-        if (
-          !isModelMockEnabled() &&
-          (!process.env.META_INFERENCE_ENDPOINT || !process.env.MODEL_API_KEY)
-        ) {
-          throw new Error('Endpoint not configured');
+        const startedAt = Date.now();
+        const model = process.env.META_MODEL?.trim() || 'meta-llama/Llama-3.3-70B-Instruct';
+        try {
+          if (
+            !isModelMockEnabled() &&
+            (!process.env.META_INFERENCE_ENDPOINT || !process.env.MODEL_API_KEY)
+          ) {
+            throw new Error('Endpoint not configured');
+          }
+          const result = await queryMetaInferenceEngine(reqPayload, process.env, fetch);
+          await recordModelTrigger({
+            tenantId: tenant.id,
+            traceId,
+            route: '/api/agent/pipeline',
+            provider: result.provider,
+            model: result.model,
+            operation: 'TEXT_INFERENCE',
+            status: 'SUCCEEDED',
+            startedAt,
+          });
+          return result;
+        } catch (error) {
+          await recordModelTrigger({
+            tenantId: tenant.id,
+            traceId,
+            route: '/api/agent/pipeline',
+            provider: 'meta',
+            model,
+            operation: 'TEXT_INFERENCE',
+            status: 'FAILED',
+            startedAt,
+            errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+          });
+          throw error;
         }
-        return queryMetaInferenceEngine(reqPayload, process.env, fetch);
       },
     },
   );

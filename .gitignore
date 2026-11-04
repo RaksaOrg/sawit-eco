@@ -26,4 +26,5 @@ yarn.lock
 tsconfig.tsbuildinfo
 .opencode/artifacts
 .expo
+.kotlin
 .markdownlint.*
