@@ -31,7 +31,7 @@ export type RootStackParamList = {
   LearningDetail: { module: LearningModule; localUri?: string };
   Approvals: undefined;
   AccountManagement: { verification?: 'success' | 'error'; source?: string } | undefined;
-  SelfieVerification: { source?: string } | undefined;
+  SelfieVerification: { source?: string; attendanceAction?: 'CHECK_IN' | 'CHECK_OUT' } | undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -123,10 +123,14 @@ export function RootNavigator() {
       </Stack.Screen>
       <Stack.Screen name="Approvals" component={ApprovalScreen} />
       <Stack.Screen name="AccountManagement">
-        {({ navigation, route }) => <AccountManagementScreen navigation={navigation} route={route} />}
+        {({ navigation, route }) => (
+          <AccountManagementScreen navigation={navigation} route={route} />
+        )}
       </Stack.Screen>
       <Stack.Screen name="SelfieVerification">
-        {({ navigation, route }) => <SelfieVerificationScreen navigation={navigation} route={route} />}
+        {({ navigation, route }) => (
+          <SelfieVerificationScreen navigation={navigation} route={route} />
+        )}
       </Stack.Screen>
     </Stack.Navigator>
   );
