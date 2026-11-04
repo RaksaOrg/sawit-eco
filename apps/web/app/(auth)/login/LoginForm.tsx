@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
+import logo from '@/public/logo.png';
 import { fioriIcons } from '@/components/fiori/FioriIcon';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
@@ -90,7 +92,7 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
     <div className="auth-page">
       <FioriBgWave />
       <header className="auth-header">
-        <img src="/logo.png" alt={t('auth:login.app_title')} className="auth-logo" />
+        <Image src={logo} alt={t('auth:login.app_title')} className="auth-logo" />
       </header>
 
       <main className="auth-main">
