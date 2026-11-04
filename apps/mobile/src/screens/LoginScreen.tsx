@@ -98,7 +98,7 @@ export function LoginScreen() {
     >
       <View style={styles.brandRow}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={require('../../assets/brand-logo.png')}
           style={styles.brandLogo}
           resizeMode="contain"
         />

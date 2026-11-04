@@ -65,7 +65,7 @@ export function TodayScreen({
       <View style={styles.topHeader}>
         <View style={styles.brandGroup}>
           <Image
-            source={require('../../assets/logo.png')}
+            source={require('../../assets/brand-logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />

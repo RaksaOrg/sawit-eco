@@ -90,7 +90,7 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
     <div className="auth-page">
       <FioriBgWave />
       <header className="auth-header">
-        <img src="/logo.png" alt={t('auth:login.app_title')} className="auth-logo" />
+        <img src="/brand-logo.png" alt={t('auth:login.app_title')} className="auth-logo" />
       </header>
 
       <main className="auth-main">
