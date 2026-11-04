@@ -106,6 +106,7 @@ Dilarang memberikan dosis final. Selalu sertakan: Sesuaikan dengan hasil analisa
           },
           body: JSON.stringify({
             model: config.model,
+            reasoning_effort: 'low',
             messages: [
               {
                 role: 'system',

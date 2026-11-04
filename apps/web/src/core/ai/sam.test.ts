@@ -86,6 +86,23 @@ describe('SAM 3.1 via Meta Model API', () => {
     expect(body.metadata.mask_encoding).toBe('one_bit');
   });
 
+  it('parses the official nested Responses API output shape', async () => {
+    const mockFetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        output: [{ content: [{ type: 'output_text', text: sampleBoxes }] }],
+      }),
+    });
+    const res = await querySamSegmentation(
+      req,
+      { SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses', META_API_KEY: 'key' },
+      mockFetch as unknown as typeof fetch,
+    );
+    expect(res.isSimulated).toBe(false);
+    expect(res.masksCount).toBe(2);
+    expect(res.modelUsed).toBe('sam-3.1');
+  });
+
   it('accepts custom prompt and returns zero matches without failing', async () => {
     const mockFetch = jest.fn().mockResolvedValue({
       ok: true,

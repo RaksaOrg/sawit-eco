@@ -172,12 +172,23 @@ export async function querySamSegmentation(
       throw new Error(`SAM API returned ${response.status}`);
     }
 
-    const payload = (await response.json()) as { output_text?: unknown };
-    if (typeof payload.output_text !== 'string') {
+    const payload = (await response.json()) as {
+      output_text?: unknown;
+      output?: Array<{ content?: Array<{ type?: string; text?: unknown }> }>;
+    };
+    const outputText =
+      typeof payload.output_text === 'string'
+        ? payload.output_text
+        : payload.output
+            ?.flatMap((item) => item.content || [])
+            .filter((content) => content.type === 'output_text')
+            .map((content) => (typeof content.text === 'string' ? content.text : ''))
+            .join('');
+    if (typeof outputText !== 'string') {
       throw new Error('SAM API returned invalid payload');
     }
 
-    const parsed = parseSamOutput(payload.output_text, prompt);
+    const parsed = parseSamOutput(outputText, prompt);
     return {
       ...parsed,
       modelUsed: config.model,

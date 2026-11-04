@@ -12,6 +12,7 @@ export interface DiagnoseRequest {
   mandorNama?: string;
   blockCode: string;
   symptoms: string;
+  diagnosisText?: string;
   photoUrl?: string;
   targetSku: string;
   dosageKgPerHa: number;
@@ -75,7 +76,7 @@ export async function processDiagnosisFlow(input: DiagnoseRequest): Promise<Diag
       blokKode: input.blockCode,
       gejala: input.symptoms,
       fotoUrl: input.photoUrl,
-      diagnosa: `Diagnosa gejala: ${input.symptoms}`,
+      diagnosa: input.diagnosisText || `Diagnosa gejala: ${input.symptoms}`,
       risiko: 'TINGGI',
       rekomendasi: `${input.reason} | ${MANDATORY_AGRONOMY_DISCLAIMER}`,
       mandorNama: input.mandorNama || 'AI Agronomist',

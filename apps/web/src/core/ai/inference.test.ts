@@ -72,6 +72,7 @@ describe('inference engine tests', () => {
     });
     expect(res.text).toBe('Hasil rekomendasi pupuk.');
     expect(res.provider).toBe('meta');
+    expect(JSON.parse(String(mockFetch.mock.calls[0][1]?.body)).reasoning_effort).toBe('low');
   });
 
   it('throws InferenceError on HTTP failure or invalid response', async () => {

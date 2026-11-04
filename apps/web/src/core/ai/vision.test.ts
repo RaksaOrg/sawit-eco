@@ -168,6 +168,7 @@ describe('Meta Vision Pipeline (Llama 3.2 90B Vision)', () => {
       successFetch as unknown as typeof fetch,
     );
     expect(successRes.isFallback).toBe(false);
+    expect(JSON.parse(String(successFetch.mock.calls[0][1]?.body)).reasoning_effort).toBe('low');
   });
 
   it('throws error on empty response or bad status in provider', async () => {
