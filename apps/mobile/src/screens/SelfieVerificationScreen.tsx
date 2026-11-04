@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AppScreen } from '../components/AppComponents';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
@@ -40,6 +40,9 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   const [cameraError, setCameraError] = useState('');
   const [previewReady, setPreviewReady] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [faceCentered, setFaceCentered] = useState(false);
+  const [eyesVisible, setEyesVisible] = useState(false);
+  const [mouthVisible, setMouthVisible] = useState(false);
   const cameraActive = hasPermission && !!device;
   const faceHandler = useRef<(faces: Face[]) => void>(() => undefined);
 
@@ -74,21 +77,25 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     setStep(0);
   };
 
-  const handleFacesDetected = (
-    faces: Array<{
-      yawAngle: number;
-      leftEyeOpenProbability?: number;
-      rightEyeOpenProbability?: number;
-    }>,
-  ) => {
+  const handleFacesDetected = (faces: Face[]) => {
     const face = faces[0];
+    const centered = !!face && face.frameWidth > 0 && face.frameHeight > 0 &&
+      Math.abs((face.bounds.x + face.bounds.width / 2) / face.frameWidth - 0.5) < 0.2 &&
+      Math.abs((face.bounds.y + face.bounds.height / 2) / face.frameHeight - 0.5) < 0.25 &&
+      face.bounds.width / face.frameWidth > 0.18 && face.bounds.width / face.frameWidth < 0.75;
+    const eyesDetected = !!face?.landmarks?.LEFT_EYE && !!face.landmarks.RIGHT_EYE &&
+      face.leftEyeOpenProbability !== undefined && face.rightEyeOpenProbability !== undefined;
+    const mouthDetected = !!face?.landmarks?.MOUTH_BOTTOM;
+    setFaceCentered((current) => current === centered ? current : centered);
+    setEyesVisible((current) => current === eyesDetected ? current : eyesDetected);
+    setMouthVisible((current) => current === mouthDetected ? current : mouthDetected);
     if (!started || !face) return;
-    const valid =
-      step === 0
-        ? face.yawAngle > 15
-        : step === 1
-          ? face.yawAngle < -15
-          : (face.leftEyeOpenProbability ?? 1) < 0.35 && (face.rightEyeOpenProbability ?? 1) < 0.35;
+    const valid = step === 0
+      ? centered && face.yawAngle > 15
+      : step === 1
+        ? centered && face.yawAngle < -15
+        : face.leftEyeOpenProbability !== undefined && face.rightEyeOpenProbability !== undefined &&
+          face.leftEyeOpenProbability < 0.35 && face.rightEyeOpenProbability < 0.35;
     if (valid) next();
   };
 
@@ -107,11 +114,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   };
 
   return (
-    <AppScreen
-      scroll
-      showTopHeader
-      style={styles.safeArea}
-    >
+    <AppScreen scroll showTopHeader style={styles.safeArea}>
       <View style={styles.card}>
         <View style={styles.sectionHeader}>
           <View style={styles.shield}>
@@ -170,18 +173,16 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         </View>
         {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
         <View style={styles.instructions}>
-          <Instruction icon="camera-outline" text={t('selfie.position_face')} />
-          <Instruction icon="sunny-outline" text={t('selfie.lighting')} />
-          <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} />
+          <Instruction icon="camera-outline" text={t('selfie.position_face')} detected={faceCentered} status={faceCentered ? t('selfie.detected') : t('selfie.not_detected')} />
+          {faceCentered ? <Instruction icon="sunny-outline" text={t('selfie.lighting')} detected={eyesVisible} status={eyesVisible ? t('selfie.detected') : t('selfie.not_detected')} /> : null}
+          {eyesVisible ? <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} detected={mouthVisible} status={mouthVisible ? t('selfie.detected') : t('selfie.not_detected')} /> : null}
         </View>
         <View style={styles.stepCard}>
           <View style={styles.stepIllustration}>
-            <Ionicons name="person-outline" size={50} color={COLORS.navy} />
-            <Ionicons
-              name="refresh-outline"
-              size={24}
-              color={COLORS.primary}
-              style={styles.rotate}
+            <Image
+              source={step === 0 ? require('../../assets/illustrations/liveness_1.png') : require('../../assets/illustrations/liveness_2.png')}
+              resizeMode="contain"
+              style={[styles.stepImage, step === 1 && styles.stepImageFlipped]}
             />
           </View>
           <View style={styles.divider} />
@@ -190,7 +191,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
           </View>
         </View>
-        <Pressable onPress={started ? next : start} style={styles.primaryButton}>
+        <Pressable onPress={start} disabled={started} style={styles.primaryButton}>
           <Ionicons name="scan-outline" size={25} color={COLORS.white} />
           <Text style={styles.primaryText}>
             {started ? t('selfie.continue') : t('selfie.start')}
@@ -198,7 +199,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         </Pressable>
         <Pressable
           style={styles.secondaryButton}
-          onPress={() => Alert.alert(t('selfie.later_title'), t('selfie.later_message'))}
+          onPress={() => navigation?.goBack()}
         >
           <Text style={styles.secondaryText}>{t('selfie.later')}</Text>
         </Pressable>
@@ -211,13 +212,17 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   );
 }
 
-function Instruction({ icon, text }: { icon: keyof typeof Ionicons.glyphMap; text: string }) {
+function Instruction({ icon, text, detected, status }: { icon: keyof typeof Ionicons.glyphMap; text: string; detected: boolean; status: string }) {
   return (
     <View style={styles.instruction}>
       <View style={styles.instructionIcon}>
         <Ionicons name={icon} size={25} color={COLORS.navy} />
       </View>
-      <Text style={styles.instructionText}>{text}</Text>
+      <View style={styles.instructionCopy}>
+        <Text style={styles.instructionText}>{text}</Text>
+        <Text style={[styles.instructionStatus, detected && styles.instructionStatusDetected]}>{status}</Text>
+      </View>
+      <Ionicons name={detected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={detected ? COLORS.green : COLORS.muted} />
     </View>
   );
 }
@@ -305,6 +310,7 @@ const styles = StyleSheet.create({
   cameraError: { color: '#B42318', fontSize: 12, marginTop: 8, textAlign: 'center' },
   instructions: { marginTop: 18, marginBottom: 18, gap: 9, paddingHorizontal: 8 },
   instruction: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  instructionCopy: { flex: 1 },
   instructionIcon: {
     width: 48,
     height: 48,
@@ -313,7 +319,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  instructionText: { flex: 1, color: COLORS.navy, fontSize: 15, fontWeight: '500' },
+  instructionText: { color: COLORS.navy, fontSize: 15, fontWeight: '500' },
+  instructionStatus: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
+  instructionStatusDetected: { color: COLORS.green, fontWeight: '700' },
   stepCard: {
     minHeight: 115,
     borderRadius: 22,
@@ -326,7 +334,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#E2F8EE',
   },
   stepIllustration: { width: 68, height: 75, alignItems: 'center', justifyContent: 'center' },
-  rotate: { position: 'absolute', right: 0, top: 5 },
+  stepImage: { width: 68, height: 75 },
+  stepImageFlipped: { transform: [{ scaleX: -1 }] },
   divider: { width: 1, height: 66, backgroundColor: COLORS.navy, opacity: 0.7 },
   stepContent: { flex: 1 },
   stepTitle: { fontSize: 14, fontWeight: '800', color: COLORS.navy, marginBottom: 5 },
