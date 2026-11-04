@@ -5,6 +5,7 @@ module.exports = {
   testMatch: ['<rootDir>/tests/**/*.test.ts'],
   moduleNameMapper: {
     '^@sawit/contracts$': '<rootDir>/../../packages/contracts/src/index.ts',
+    '^zod$': '<rootDir>/node_modules/zod',
   },
   collectCoverageFrom: [
     'src/**/*.ts',

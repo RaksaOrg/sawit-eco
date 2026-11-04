@@ -1,6 +1,10 @@
 import { apiRequest } from '../../../src/core/api/client';
 import { readSession } from '../../../src/core/auth/session';
 
+jest.mock('expo/fetch', () => ({ fetch: jest.fn() }));
+
+const mockExpoFetch = jest.requireMock('expo/fetch').fetch as jest.Mock;
+
 jest.mock('../../../src/core/auth/session', () => ({
   readSession: jest.fn(),
 }));
@@ -56,6 +60,32 @@ describe('mobile api client', () => {
     const [, options] = mockFetch.mock.calls[0];
     expect(options.headers).not.toHaveProperty('authorization');
     expect(options.headers).not.toHaveProperty('x-tenant-id');
+  });
+
+  it('uses Expo fetch for native FormData uploads without setting content type', async () => {
+    mockReadSession.mockResolvedValueOnce({ token: 'token-1', tenantId: 'tenant-1' } as never);
+    mockExpoFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, data: { uploaded: true } }),
+    });
+    const body = new FormData();
+    body.append('frames', 'file-part');
+
+    const result = await apiRequest<{ uploaded: boolean }>('/api/upload', {
+      method: 'POST',
+      body,
+    });
+
+    expect(result).toEqual({ uploaded: true });
+    expect(mockExpoFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/upload'),
+      expect.objectContaining({
+        body,
+        headers: expect.objectContaining({ authorization: 'Bearer token-1' }),
+      }),
+    );
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockExpoFetch.mock.calls[0][1].headers).not.toHaveProperty('content-type');
   });
 
   it('throws parsed API error message', async () => {
