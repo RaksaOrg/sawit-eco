@@ -79,23 +79,33 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
 
   const handleFacesDetected = (faces: Face[]) => {
     const face = faces[0];
-    const centered = !!face && face.frameWidth > 0 && face.frameHeight > 0 &&
+    const centered =
+      !!face &&
+      face.frameWidth > 0 &&
+      face.frameHeight > 0 &&
       Math.abs((face.bounds.x + face.bounds.width / 2) / face.frameWidth - 0.5) < 0.2 &&
       Math.abs((face.bounds.y + face.bounds.height / 2) / face.frameHeight - 0.5) < 0.25 &&
-      face.bounds.width / face.frameWidth > 0.18 && face.bounds.width / face.frameWidth < 0.75;
-    const eyesDetected = !!face?.landmarks?.LEFT_EYE && !!face.landmarks.RIGHT_EYE &&
-      face.leftEyeOpenProbability !== undefined && face.rightEyeOpenProbability !== undefined;
+      face.bounds.width / face.frameWidth > 0.18 &&
+      face.bounds.width / face.frameWidth < 0.75;
+    const eyesDetected =
+      !!face?.landmarks?.LEFT_EYE &&
+      !!face.landmarks.RIGHT_EYE &&
+      face.leftEyeOpenProbability !== undefined &&
+      face.rightEyeOpenProbability !== undefined;
     const mouthDetected = !!face?.landmarks?.MOUTH_BOTTOM;
-    setFaceCentered((current) => current === centered ? current : centered);
-    setEyesVisible((current) => current === eyesDetected ? current : eyesDetected);
-    setMouthVisible((current) => current === mouthDetected ? current : mouthDetected);
+    setFaceCentered((current) => (current === centered ? current : centered));
+    setEyesVisible((current) => (current === eyesDetected ? current : eyesDetected));
+    setMouthVisible((current) => (current === mouthDetected ? current : mouthDetected));
     if (!started || !face) return;
-    const valid = step === 0
-      ? centered && face.yawAngle > 15
-      : step === 1
-        ? centered && face.yawAngle < -15
-        : face.leftEyeOpenProbability !== undefined && face.rightEyeOpenProbability !== undefined &&
-          face.leftEyeOpenProbability < 0.35 && face.rightEyeOpenProbability < 0.35;
+    const valid =
+      step === 0
+        ? centered && face.yawAngle > 15
+        : step === 1
+          ? centered && face.yawAngle < -15
+          : face.leftEyeOpenProbability !== undefined &&
+            face.rightEyeOpenProbability !== undefined &&
+            face.leftEyeOpenProbability < 0.35 &&
+            face.rightEyeOpenProbability < 0.35;
     if (valid) next();
   };
 
@@ -173,35 +183,66 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
         </View>
         {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
         <View style={styles.instructions}>
-          <Instruction icon="camera-outline" text={t('selfie.position_face')} detected={faceCentered} status={faceCentered ? t('selfie.detected') : t('selfie.not_detected')} />
-          {faceCentered ? <Instruction icon="sunny-outline" text={t('selfie.lighting')} detected={eyesVisible} status={eyesVisible ? t('selfie.detected') : t('selfie.not_detected')} /> : null}
-          {eyesVisible ? <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} detected={mouthVisible} status={mouthVisible ? t('selfie.detected') : t('selfie.not_detected')} /> : null}
+          <Instruction
+            icon="camera-outline"
+            text={t('selfie.position_face')}
+            detected={started ? faceCentered : undefined}
+            status={
+              started ? (faceCentered ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+            }
+          />
+          <Instruction
+            icon="sunny-outline"
+            text={t('selfie.lighting')}
+            detected={started ? eyesVisible : undefined}
+            status={
+              started ? (eyesVisible ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+            }
+          />
+          <Instruction
+            icon="glasses-outline"
+            text={t('selfie.remove_accessories')}
+            detected={started ? mouthVisible : undefined}
+            status={
+              started ? (mouthVisible ? t('selfie.detected') : t('selfie.not_detected')) : undefined
+            }
+          />
         </View>
-        <View style={styles.stepCard}>
-          <View style={styles.stepIllustration}>
-            <Image
-              source={step === 0 ? require('../../assets/illustrations/liveness_1.png') : require('../../assets/illustrations/liveness_2.png')}
-              resizeMode="contain"
-              style={[styles.stepImage, step === 1 && styles.stepImageFlipped]}
-            />
+        {started && faceCentered && (
+          <View style={styles.stepCard}>
+            <View style={styles.stepIllustration}>
+              <Image
+                source={
+                  step === 0
+                    ? require('../../assets/illustrations/liveness_1.png')
+                    : require('../../assets/illustrations/liveness_2.png')
+                }
+                resizeMode="contain"
+                style={[styles.stepImage, step === 1 && styles.stepImageFlipped]}
+              />
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.stepContent}>
+              <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
+              <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
+            </View>
           </View>
-          <View style={styles.divider} />
-          <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
-            <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
-          </View>
-        </View>
-        <Pressable onPress={start} disabled={started} style={styles.primaryButton}>
+        )}
+        <Pressable
+          onPress={start}
+          disabled={started}
+          style={[styles.primaryButton, { display: started ? 'none' : undefined }]}
+        >
           <Ionicons name="scan-outline" size={25} color={COLORS.white} />
-          <Text style={styles.primaryText}>
-            {started ? t('selfie.continue') : t('selfie.start')}
-          </Text>
+          <Text style={styles.primaryText}>{t('selfie.start')}</Text>
         </Pressable>
         <Pressable
-          style={styles.secondaryButton}
+          style={started ? styles.secondaryLink : styles.secondaryButton}
           onPress={() => navigation?.goBack()}
         >
-          <Text style={styles.secondaryText}>{t('selfie.later')}</Text>
+          <Text style={[styles.secondaryText, started && { fontSize: 12, fontWeight: '600' }]}>
+            {t('selfie.later')}
+          </Text>
         </Pressable>
         <View style={styles.security}>
           <Ionicons name="lock-closed-outline" size={19} color="#6B7B9D" />
@@ -212,7 +253,17 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   );
 }
 
-function Instruction({ icon, text, detected, status }: { icon: keyof typeof Ionicons.glyphMap; text: string; detected: boolean; status: string }) {
+function Instruction({
+  icon,
+  text,
+  detected,
+  status,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  text: string;
+  detected?: boolean;
+  status?: string;
+}) {
   return (
     <View style={styles.instruction}>
       <View style={styles.instructionIcon}>
@@ -220,9 +271,19 @@ function Instruction({ icon, text, detected, status }: { icon: keyof typeof Ioni
       </View>
       <View style={styles.instructionCopy}>
         <Text style={styles.instructionText}>{text}</Text>
-        <Text style={[styles.instructionStatus, detected && styles.instructionStatusDetected]}>{status}</Text>
+        {status && (
+          <Text style={[styles.instructionStatus, detected && styles.instructionStatusDetected]}>
+            {status}
+          </Text>
+        )}
       </View>
-      <Ionicons name={detected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={detected ? COLORS.green : COLORS.muted} />
+      {detected !== undefined && (
+        <Ionicons
+          name={detected ? 'checkmark-circle' : 'ellipse-outline'}
+          size={20}
+          color={detected ? COLORS.green : COLORS.muted}
+        />
+      )}
     </View>
   );
 }
@@ -355,6 +416,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
   },
   primaryText: { fontSize: 16, fontWeight: '700', color: '#FFF' },
+  secondaryLink: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+  },
   secondaryButton: {
     height: 50,
     borderRadius: 19,
@@ -362,7 +427,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 9,
+    marginTop: 8,
   },
   secondaryText: { color: COLORS.primary, fontSize: 16, fontWeight: '700' },
   security: {
