@@ -8,6 +8,8 @@
     "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
     "mobile:test": "npm --prefix apps/mobile run test",
     "mobile:android": "npm --prefix apps/mobile run android",
+    "mobile:build:debug": "npm --prefix apps/mobile run build:android:debug",
+    "mobile:build:release": "npm --prefix apps/mobile run build:android:release",
     "mobile:ios": "npm --prefix apps/mobile run ios",
     "web:install": "npm --prefix apps/web install",
     "web:start": "npm --prefix apps/web run start",
