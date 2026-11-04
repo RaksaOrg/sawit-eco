@@ -12,16 +12,14 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     const response = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers: {
-        ...(typeof FormData !== 'undefined' && options.body instanceof FormData
-          ? {}
-          : { 'content-type': 'application/json' }),
+        'content-type': 'application/json',
         ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...(tenantId ? { 'x-tenant-id': tenantId } : {}),
         ...options.headers,
       },
     });
-
-    console.debug('apiRequest response :>>>', response);
+    
+    console.debug("apiRequest response :>>>", response);
 
     const payload = (await response.json()) as { success?: boolean; data?: T; error?: unknown };
     if (!response.ok || payload.success === false) {
@@ -30,7 +28,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
     }
     return (payload.data !== undefined ? payload.data : payload) as T;
   } catch (error) {
-    console.error('apiRequest error :>>>', error);
+    console.error("apiRequest error :>>>", error);
     throw error;
   }
 }
