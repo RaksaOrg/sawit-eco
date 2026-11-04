@@ -1,0 +1,9 @@
+{
+  "error": {
+    "invalid_period": "pilotStart dan pilotEnd wajib berformat YYYY-MM-DD.",
+    "invalid_range": "Rentang pilot harus antara 1 dan 366 hari."
+  },
+  "data_quality": {
+    "price_sample_note": "Harga memakai observasi berpasangan dengan sumber tercatat. Metrik tanpa data yang cukup dikembalikan sebagai null."
+  }
+}

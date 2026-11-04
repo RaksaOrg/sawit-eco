@@ -7,6 +7,7 @@ import idCommon from './locales/id/common.json';
 import idDashboard from './locales/id/dashboard.json';
 import idHris from './locales/id/hris.json';
 import idLearning from './locales/id/learning.json';
+import idImpact from './locales/id/impact.json';
 import idTasks from './locales/id/tasks.json';
 import enAgronomy from './locales/en/agronomy.json';
 import enAuth from './locales/en/auth.json';
@@ -15,6 +16,7 @@ import enCommon from './locales/en/common.json';
 import enDashboard from './locales/en/dashboard.json';
 import enHris from './locales/en/hris.json';
 import enLearning from './locales/en/learning.json';
+import enImpact from './locales/en/impact.json';
 import enTasks from './locales/en/tasks.json';
 
 const namespaces = [
@@ -26,6 +28,7 @@ const namespaces = [
   'hris',
   'tasks',
   'dashboard',
+  'impact',
 ] as const;
 
 export function handleMissingKey(key: string): string {
@@ -51,6 +54,7 @@ if (!i18n.isInitialized) {
         hris: idHris,
         tasks: idTasks,
         dashboard: idDashboard,
+        impact: idImpact,
       },
       en: {
         common: enCommon,
@@ -61,6 +65,7 @@ if (!i18n.isInitialized) {
         hris: enHris,
         tasks: enTasks,
         dashboard: enDashboard,
+        impact: enImpact,
       },
     },
     interpolation: { escapeValue: false },

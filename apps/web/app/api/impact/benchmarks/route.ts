@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTenant } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import idImpact from '@/src/i18n/locales/id/impact.json';
+import enImpact from '@/src/i18n/locales/en/impact.json';
 import {
   calculatePeriodMetrics,
   calculatePriceChanges,
@@ -17,22 +19,31 @@ function parseDate(value: string | null): Date | null {
 }
 
 export async function GET(request: NextRequest) {
+  const messages = request.headers.get('accept-language')?.toLowerCase().startsWith('en')
+    ? enImpact
+    : idImpact;
   const tenant = await requireTenant(request);
-  const now = new Date();
-  const defaultPilotEnd = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
-  );
-  const defaultPilotStart = new Date(defaultPilotEnd);
-  defaultPilotStart.setUTCDate(defaultPilotStart.getUTCDate() - 30);
-  const pilotStart = parseDate(request.nextUrl.searchParams.get('pilotStart')) || defaultPilotStart;
-  const pilotEnd = parseDate(request.nextUrl.searchParams.get('pilotEnd')) || defaultPilotEnd;
+  const pilotStart = parseDate(request.nextUrl.searchParams.get('pilotStart'));
+  const pilotEnd = parseDate(request.nextUrl.searchParams.get('pilotEnd'));
+  if (!pilotStart || !pilotEnd) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'INVALID_PERIOD',
+          message: messages.error.invalid_period,
+        },
+      },
+      { status: 400 },
+    );
+  }
   const duration = pilotEnd.getTime() - pilotStart.getTime();
 
   if (duration <= 0 || duration > 366 * 86_400_000) {
     return NextResponse.json(
       {
         success: false,
-        error: { code: 'INVALID_PERIOD', message: 'Rentang pilot harus 1–366 hari' },
+        error: { code: 'INVALID_PERIOD', message: messages.error.invalid_range },
       },
       { status: 400 },
     );
@@ -94,7 +105,7 @@ export async function GET(request: NextRequest) {
       prices,
       dataQuality: {
         priceSampleCount: priceObservations.length,
-        note: 'Harga memakai observasi berpasangan aktual; input harus menyertakan sumber. Metrik tanpa data cukup bernilai null.',
+        note: messages.data_quality.price_sample_note,
       },
     },
   });
