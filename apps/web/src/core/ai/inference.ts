@@ -44,14 +44,14 @@ export class InferenceError extends Error {
   }
 }
 
-const DEFAULT_MODEL = 'meta-llama/Llama-3.3-70B-Instruct';
+const DEFAULT_MODEL = 'muse-spark-1.3';
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 export function resolveInferenceConfig(
   env: Record<string, string | undefined>,
 ): InferenceConfig | null {
   const rawEndpoint = env.META_INFERENCE_ENDPOINT;
-  const rawApiKey = env.MODEL_API_KEY || env.INFERENCE_API_KEY;
+  const rawApiKey = env.META_API_KEY;
   if (!rawEndpoint || !rawApiKey) return null;
   const endpoint = rawEndpoint.trim();
   const apiKey = rawApiKey.trim();
@@ -132,7 +132,7 @@ export async function queryMetaInferenceEngine(
   if (!config) {
     throw new InferenceError(
       'NOT_CONFIGURED',
-      'META_INFERENCE_ENDPOINT dan MODEL_API_KEY belum dikonfigurasi',
+      'META_INFERENCE_ENDPOINT dan META_API_KEY belum dikonfigurasi',
     );
   }
   return createMetaInferenceProvider(config, fetchImpl).complete(request);

@@ -13,7 +13,7 @@ describe('SAM 3.1 via Meta Model API', () => {
     expect(resolveSamConfig({})).toBeNull();
     const config = resolveSamConfig({
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'meta-key',
+      META_API_KEY: 'meta-key',
     });
     expect(config?.endpoint).toBe('https://api.meta.ai/v1/responses');
     expect(config?.model).toBe('sam-3.1');
@@ -21,7 +21,7 @@ describe('SAM 3.1 via Meta Model API', () => {
 
     const custom = resolveSamConfig({
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'key',
+      META_API_KEY: 'key',
       SAM_MODEL: 'sam-3.1',
       SAM_TIMEOUT_MS: '45000',
     });
@@ -46,7 +46,7 @@ describe('SAM 3.1 via Meta Model API', () => {
 
     const configured = segmentCommodityFeature(req, {
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'key',
+      META_API_KEY: 'key',
       SAM_MODEL: 'custom-sam',
     });
     expect(configured.isSimulated).toBe(false);
@@ -60,7 +60,7 @@ describe('SAM 3.1 via Meta Model API', () => {
     });
     const env = {
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'meta-secret',
+      META_API_KEY: 'meta-secret',
       SAM_MODEL: 'sam-3.1',
     };
 
@@ -93,7 +93,7 @@ describe('SAM 3.1 via Meta Model API', () => {
     });
     const env = {
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'key',
+      META_API_KEY: 'key',
     };
     const res = await querySamSegmentation(
       { ...req, prompt: 'ganoderma fruiting body' },
@@ -119,7 +119,7 @@ describe('SAM 3.1 via Meta Model API', () => {
       req,
       {
         SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-        MODEL_API_KEY: 'key',
+        META_API_KEY: 'key',
       },
       mockFetch as unknown as typeof fetch,
     );
@@ -131,7 +131,7 @@ describe('SAM 3.1 via Meta Model API', () => {
   it('falls back to simulation on API failure, invalid payload, or timeout', async () => {
     const env = {
       SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses',
-      MODEL_API_KEY: 'key',
+      META_API_KEY: 'key',
     };
 
     const failed = jest.fn().mockResolvedValue({ ok: false, status: 503 });
@@ -169,7 +169,7 @@ describe('SAM 3.1 via Meta Model API', () => {
   it('uses default env arguments for config and query', async () => {
     const originalFetch = global.fetch;
     process.env.SAM_INFERENCE_ENDPOINT = 'https://api.meta.ai/v1/responses';
-    process.env.MODEL_API_KEY = 'key';
+    process.env.META_API_KEY = 'key';
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       json: async () => ({ output_text: sampleBoxes }),
@@ -181,17 +181,17 @@ describe('SAM 3.1 via Meta Model API', () => {
 
     global.fetch = originalFetch;
     delete process.env.SAM_INFERENCE_ENDPOINT;
-    delete process.env.MODEL_API_KEY;
+    delete process.env.META_API_KEY;
   });
 });
 
-describe('MODEL_API_KEY guard for SAM endpoint', () => {
-  it('skips the endpoint when MODEL_API_KEY is missing, empty, or undefined', async () => {
+describe('META_API_KEY guard for SAM endpoint', () => {
+  it('skips the endpoint when META_API_KEY is missing, empty, or undefined', async () => {
     for (const key of [undefined, '']) {
       const fetchMock = jest.fn();
       const res = await querySamSegmentation(
         { image: { mime: 'image/jpeg', base64: 'abc' }, targetType: 'LEAF_DEFECT' },
-        { SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses', MODEL_API_KEY: key },
+        { SAM_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/responses', META_API_KEY: key },
         fetchMock as unknown as typeof fetch,
       );
       expect(res.isSimulated).toBe(true);

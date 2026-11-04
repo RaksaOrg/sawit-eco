@@ -117,11 +117,11 @@ export async function transcribeAudio(
   audioPath: string,
   options: TranscribeOptions = {},
 ): Promise<string> {
-  const apiKey = options.apiKey || process.env.MODEL_API_KEY;
+  const apiKey = options.apiKey || process.env.META_API_KEY;
   const baseURL =
     options.baseURL || process.env.ASR_INFERENCE_ENDPOINT || process.env.ROUTER_BASE_URL;
   const model = options.model || process.env.ASR_MODEL || 'whisper-large-v3';
-  if (!apiKey) throw new Error('No API key found. Set MODEL_API_KEY.');
+  if (!apiKey) throw new Error('No API key found. Set META_API_KEY.');
   if (!baseURL) throw new Error('No ASR endpoint found. Set ASR_INFERENCE_ENDPOINT.');
 
   const fileBytes = await fs.readFile(audioPath);

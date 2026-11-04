@@ -14,7 +14,7 @@ describe('liveness inference', () => {
     expect(
       resolveLivenessConfig({
         VISION_INFERENCE_ENDPOINT: 'https://vision.test',
-        MODEL_API_KEY: ' key ',
+        META_API_KEY: ' key ',
         VISION_MODEL: 'muse-spark-1.3',
         VISION_TIMEOUT_MS: '45000',
       }),
@@ -27,7 +27,7 @@ describe('liveness inference', () => {
     expect(
       resolveLivenessConfig({
         META_INFERENCE_ENDPOINT: 'https://meta.test',
-        MODEL_API_KEY: 'key',
+        META_API_KEY: 'key',
         META_MODEL: 'muse-spark-1.3',
         META_INFERENCE_TIMEOUT_MS: '30000',
       })?.model,

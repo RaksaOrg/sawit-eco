@@ -173,7 +173,7 @@ Endpoint Target: \`${BASE_URL}/api/whatsapp/webhook\`
      - \`AUTH_SECRET\` (Minimal 32 karakter)
      - \`WA_VERIFY_TOKEN\` (\`sawit_rahasia_123\`)
      - \`WA_ACCESS_TOKEN\` & \`WA_PHONE_NUMBER_ID\`
-     - \`META_INFERENCE_ENDPOINT\` & \`INFERENCE_API_KEY\`
+     - \`META_INFERENCE_ENDPOINT\` & \`META_API_KEY\`
 3. **Konfigurasi Webhook Meta**:
    - URL: \`https://sawit-ecosystem.vercel.app/api/whatsapp/webhook\`
    - Token: \`sawit_rahasia_123\`

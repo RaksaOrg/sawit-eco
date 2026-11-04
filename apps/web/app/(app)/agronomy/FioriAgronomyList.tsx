@@ -138,7 +138,7 @@ export default function FioriAgronomyList({
     setSubmitting(true);
     setDiagnosisResult(null);
     try {
-      const skuToSend = selectedSku || products[0]?.sku || 'GAP_PRODUCT_UNKNOWN';
+      const skuToSend = selectedSku || products[0]?.sku || 'SKU_GAP_PRODUCT_UNKNOWN';
       const blockToSend = selectedBlock || blocks[0]?.kode || 'A1';
       const res = await fetch('/api/agronomy/diagnose', {
         method: 'POST',
@@ -443,7 +443,7 @@ export default function FioriAgronomyList({
                       {`${p.nama} (${p.sku}) - Rp ${p.harga.toLocaleString('id-ID')}/${p.satuan}`}
                     </Option>
                   ))}
-                  <Option value="GAP_PRODUCT_UNKNOWN">
+                  <Option value="SKU_GAP_PRODUCT_UNKNOWN">
                     {t('agronomy:diagnose.unlisted_product')}
                   </Option>
                 </Select>

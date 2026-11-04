@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/auth';
 import { resolveLivenessConfig, verifyLiveness } from '@/src/core/ai/liveness';
-import { recordModelTrigger } from '@/lib/model-trigger';
+import { getModelProvider, recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       tenantId: auth.tenantId,
       traceId,
       route: '/api/verification/liveness',
-      provider: 'vision-inference',
+      provider: getModelProvider(config.endpoint),
       model: config.model,
       operation: 'LIVENESS_VERIFICATION',
       status: 'SUCCEEDED',
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
         tenantId: auth.tenantId,
         traceId,
         route: '/api/verification/liveness',
-        provider: 'vision-inference',
+        provider: getModelProvider(config.endpoint),
         model: config.model,
         operation: 'LIVENESS_VERIFICATION',
         status: 'FAILED',

@@ -118,16 +118,16 @@ describe('vision image analysis', () => {
   });
 
   it('rejects missing credentials or endpoint and API failures', async () => {
-    const originalKey = process.env.MODEL_API_KEY;
+    const originalKey = process.env.META_API_KEY;
     const originalEndpoint = process.env.VISION_INFERENCE_ENDPOINT;
-    delete process.env.MODEL_API_KEY;
+    delete process.env.META_API_KEY;
     delete process.env.VISION_INFERENCE_ENDPOINT;
     delete process.env.META_INFERENCE_ENDPOINT;
     await expect(extractDesignSpec(redImage)).rejects.toThrow('No API key');
-    process.env.MODEL_API_KEY = 'k';
+    process.env.META_API_KEY = 'k';
     await expect(extractDesignSpec(redImage)).rejects.toThrow('No vision endpoint');
-    if (originalKey) process.env.MODEL_API_KEY = originalKey;
-    else delete process.env.MODEL_API_KEY;
+    if (originalKey) process.env.META_API_KEY = originalKey;
+    else delete process.env.META_API_KEY;
     if (originalEndpoint) process.env.VISION_INFERENCE_ENDPOINT = originalEndpoint;
     else delete process.env.VISION_INFERENCE_ENDPOINT;
 
