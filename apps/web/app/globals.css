@@ -362,6 +362,17 @@ body {
   width: 100%;
 }
 
+.auth-apk-link {
+  color: var(--sapLinkColor);
+  font-size: var(--sapFontSmallSize);
+  text-align: center;
+  text-decoration: none;
+}
+
+.auth-apk-link:hover {
+  text-decoration: underline;
+}
+
 .auth-demo {
   margin-top: 0.5rem;
   padding-top: 0.75rem;

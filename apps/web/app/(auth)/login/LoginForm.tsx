@@ -35,6 +35,7 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
   const emailInvalid = touched && !/^\S+@\S+\.\S+$/.test(email.trim());
   const passwordInvalid = touched && password.length === 0;
   const language = i18n.language.startsWith('en') ? 'en' : 'id';
+  const androidApkUrl = process.env.NEXT_PUBLIC_ANDROID_APK_URL;
   const busy = submitting || demoLoadingId !== null;
 
   const openDashboard = () => {
@@ -138,6 +139,12 @@ export default function LoginForm({ hasError, tenants }: LoginFormProps) {
           <Button design="Emphasized" type="Submit" loading={submitting} disabled={busy}>
             {t('auth:login.log_on')}
           </Button>
+
+          {androidApkUrl && (
+            <a className="auth-apk-link" href={androidApkUrl} target="_blank" rel="noreferrer">
+              {t('auth:login.download_android_app')}
+            </a>
+          )}
 
           {tenants.length > 0 && (
             <div className="auth-demo">
