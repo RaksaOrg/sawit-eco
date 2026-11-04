@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -27,13 +27,19 @@ const tTokens = foundationTokens;
 
 export function AccountManagementScreen({
   navigation,
+  route,
 }: {
-  navigation?: { goBack: () => void; navigate: (screen: string) => void };
+  navigation?: { goBack: () => void; navigate: (screen: string, params?: unknown) => void };
+  route?: { params?: { verification?: 'success' | 'error'; source?: string } };
 }) {
   const language = useMobileAppStore((s) => s.language);
   const session = useMobileAppStore((s) => s.session);
   const setSession = useMobileAppStore((s) => s.setSession);
   const t = createTranslator(language);
+
+  useEffect(() => {
+    if (route?.params?.verification === 'success') setSaveSuccess(true);
+  }, [route?.params?.verification]);
 
   // Validation schema with i18n messages
   const accountSchema = z.object({
@@ -385,7 +391,7 @@ export function AccountManagementScreen({
         <AppButton
           label={saveSuccess ? t('account.saved_success') : t('account.save_changes')}
           variant="primary"
-          onPress={handleSubmit(onSubmit)}
+           onPress={() => navigation?.navigate('SelfieVerification', { source: 'AccountManagement' })}
           loading={isSubmitting}
           fullWidth
           height={48}

@@ -20,6 +20,7 @@ import { DiagnosisScreen } from '../screens/DiagnosisScreen';
 import { TaskDetailScreen } from '../screens/TaskDetailScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { AccountManagementScreen } from '../screens/AccountManagementScreen';
+import { SelfieVerificationScreen } from '../screens/SelfieVerificationScreen';
 import { MobileTask, LearningModule } from '../core/api/hooks';
 import { semanticTokens } from '../theme/semantic/tokens';
 
@@ -29,7 +30,8 @@ export type RootStackParamList = {
   Diagnosis: undefined;
   LearningDetail: { module: LearningModule; localUri?: string };
   Approvals: undefined;
-  AccountManagement: undefined;
+  AccountManagement: { verification?: 'success' | 'error'; source?: string } | undefined;
+  SelfieVerification: { source?: string } | undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -121,7 +123,10 @@ export function RootNavigator() {
       </Stack.Screen>
       <Stack.Screen name="Approvals" component={ApprovalScreen} />
       <Stack.Screen name="AccountManagement">
-        {({ navigation }) => <AccountManagementScreen navigation={navigation} />}
+        {({ navigation, route }) => <AccountManagementScreen navigation={navigation} route={route} />}
+      </Stack.Screen>
+      <Stack.Screen name="SelfieVerification">
+        {({ navigation, route }) => <SelfieVerificationScreen navigation={navigation} route={route} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

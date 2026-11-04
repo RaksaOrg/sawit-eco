@@ -106,7 +106,9 @@ declare module 'expo-image-picker' {
 }
 
 declare module 'expo-camera' {
-  export const Camera: any;
+  export const Camera: {
+    requestCameraPermissionsAsync: () => Promise<{ granted: boolean }>;
+  };
   export const CameraView: any;
 }
 
