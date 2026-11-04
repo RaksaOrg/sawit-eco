@@ -182,9 +182,9 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     const valid =
       adequateLighting &&
       (activeStep === 'right'
-        ? centered && face.yawAngle > 15
+        ? centered && face.yawAngle < -15
         : activeStep === 'left'
-          ? centered && face.yawAngle < -15
+          ? centered && face.yawAngle > 15
           : face.leftEyeOpenProbability !== undefined &&
             face.rightEyeOpenProbability !== undefined &&
             face.leftEyeOpenProbability < 0.35 &&
