@@ -92,6 +92,7 @@
     "payment_ref": "Nomor Referensi Transfer / Bukti",
     "payment_amount": "Jumlah Dibayar",
     "payment_success": "Pembayaran berhasil dikonfirmasi",
-    "payment_error": "Gagal memproses pembayaran"
+    "payment_error": "Gagal memproses pembayaran",
+    "status_paid": "Dibayar"
   }
 }

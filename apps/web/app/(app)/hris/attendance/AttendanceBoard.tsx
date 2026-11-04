@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import {
   AnalyticalTable,
@@ -72,6 +73,7 @@ export default function AttendanceBoard({
   summary: { present: number; halfDay: number; absent: number; totalHk: number };
 }) {
   const { t } = useTranslation(['hris', 'common']);
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = React.useState(date);
   const [employeeId, setEmployeeId] = React.useState('');
   const [blockCode, setBlockCode] = React.useState('');
@@ -196,6 +198,19 @@ export default function AttendanceBoard({
       title={t('hris:attendance.page_title')}
       subtitle={t('hris:attendance.subtitle', { tenant: tenantNama, date })}
       breadcrumb={t('hris:attendance.breadcrumb')}
+      headerContent={
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0' }}>
+          <Label style={{ fontWeight: 'bold' }}>{t('hris:attendance.filter_date_label')}:</Label>
+          <DatePicker
+            value={date}
+            onChange={(e) => {
+              if (e.target.value) {
+                router.push(`/hris/attendance?date=${e.target.value}`);
+              }
+            }}
+          />
+        </div>
+      }
     >
       {unverifiedCount > 0 ? (
         <MessageStrip design="Critical" style={{ marginBottom: '1rem' }} hideCloseButton>

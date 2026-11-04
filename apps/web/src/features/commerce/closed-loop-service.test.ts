@@ -1,6 +1,7 @@
 const blockFindUnique = jest.fn();
 const productFindMany = jest.fn();
 const agronomyLogCreate = jest.fn();
+const agronomyLogFindFirst = jest.fn();
 const productGapCreate = jest.fn();
 const ledgerCreate = jest.fn();
 const cartFindFirst = jest.fn();
@@ -15,7 +16,10 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     block: { findUnique: (...a: unknown[]) => blockFindUnique(...a) },
     product: { findMany: (...a: unknown[]) => productFindMany(...a) },
-    agronomyLog: { create: (...a: unknown[]) => agronomyLogCreate(...a) },
+    agronomyLog: {
+      create: (...a: unknown[]) => agronomyLogCreate(...a),
+      findFirst: (...a: unknown[]) => agronomyLogFindFirst(...a),
+    },
     productGap: { create: (...a: unknown[]) => productGapCreate(...a) },
     recommendationLedger: { create: (...a: unknown[]) => ledgerCreate(...a) },
     cart: {
@@ -52,6 +56,7 @@ describe('closed loop service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     agronomyLogCreate.mockResolvedValue({ id: 'log1' });
+    agronomyLogFindFirst.mockResolvedValue({ id: 'log1' });
     ledgerCreate.mockResolvedValue({});
     productGapCreate.mockResolvedValue({ id: 'gap1' });
   });
@@ -72,6 +77,8 @@ describe('closed loop service', () => {
     expect(res.logId).toBe('log1');
     expect(res.recommendation.status).toBe('RECOMMENDED');
     expect(res.recommendation.estimation?.jumlahSak).toBe(75);
+    expect(res.recommendation.card?.sku).toBe('FERT-MOP-50');
+    expect(res.recommendation.card?.kuantitas).toBe(75);
     expect(res.gapId).toBeUndefined();
     expect(productGapCreate).not.toHaveBeenCalled();
     expect(ledgerCreate).toHaveBeenCalledWith(

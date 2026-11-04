@@ -155,9 +155,9 @@ async function main() {
       const mandorHash = hashPassword(mandorPassword);
       mandorUsers.push(
         await prisma.user.create({
-          data: { 
-            ...m, 
-            tenantId: tenant.id, 
+          data: {
+            ...m,
+            tenantId: tenant.id,
             role: 'MANDOR',
             passwordHash: mandorHash,
           },
@@ -197,7 +197,6 @@ async function main() {
       }
     }
     await prisma.dailyReport.createMany({ data: reports });
-
 
     await prisma.agronomyLog.createMany({
       data: agronomySamples.map((s, idx) => {

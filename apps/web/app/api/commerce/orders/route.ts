@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenant } from '@/lib/auth';
+import { getAuthContext, requireTenant } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { orderDecisionSchema, paymentProofSchema } from '@sawit/contracts';
 import {
@@ -53,7 +53,12 @@ export async function POST(req: NextRequest) {
     if (body.action === 'submit') {
       const order = await submitOrderFromCart({
         tenantId: tenant.id,
-        userId: body.userId || 'system',
+        userId:
+          body.userId ||
+          (await getAuthContext(req))?.userId ||
+          (await prisma.user.findFirst({ where: { tenantId: tenant.id }, select: { id: true } }))
+            ?.id ||
+          'system',
         cartId: body.cartId || '',
         estimateAcknowledged: Boolean(body.estimateAcknowledged),
       });
@@ -125,6 +130,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.action === 'decide') {
+      if (!body.approverId) {
+        const auth = await getAuthContext(req);
+        if (auth?.userId && auth.role === 'OWNER') {
+          body.approverId = auth.userId;
+        } else {
+          const owner = await prisma.user.findFirst({
+            where: { tenantId: tenant.id, role: { in: ['OWNER', 'MANAGER'] } },
+            select: { id: true },
+          });
+          if (owner) body.approverId = owner.id;
+        }
+      }
       const parsed = orderDecisionSchema.safeParse(body);
       if (!parsed.success) {
         return NextResponse.json(

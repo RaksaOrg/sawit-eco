@@ -102,7 +102,7 @@ export const paymentProofSchema = z.object({
   orderId: z.string().uuid(),
   amount: z.number().positive(),
   reference: z.string().min(1),
-  proofUrl: z.string().url().optional(),
+  proofUrl: z.string().optional(),
 });
 
 export const orderSchema = z.object({

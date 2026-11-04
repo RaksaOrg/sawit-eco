@@ -1,3 +1,21 @@
+CREATE TABLE "PilotPriceObservation" (
+    "id" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "commodity" TEXT NOT NULL,
+    "unit" TEXT NOT NULL,
+    "beforePrice" DOUBLE PRECISION NOT NULL,
+    "afterPrice" DOUBLE PRECISION NOT NULL,
+    "source" TEXT NOT NULL,
+    "observedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PilotPriceObservation_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX "PilotPriceObservation_tenantId_commodity_observedAt_idx" ON "PilotPriceObservation"("tenantId", "commodity", "observedAt");
+
+ALTER TABLE "PilotPriceObservation" ADD CONSTRAINT "PilotPriceObservation_tenantId_fkey" FOREIGN KEY ("tenantId") REFERENCES "Tenant"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 CREATE TABLE "ModelTrigger" (
     "id" TEXT NOT NULL,
     "tenantId" TEXT NOT NULL,

@@ -1,0 +1,9 @@
+{
+  "error": {
+    "invalid_period": "pilotStart and pilotEnd are required in YYYY-MM-DD format.",
+    "invalid_range": "Pilot range must be between 1 and 366 days."
+  },
+  "data_quality": {
+    "price_sample_note": "Prices use paired observations with a recorded source. Metrics without enough data are returned as null."
+  }
+}

@@ -6,6 +6,7 @@ import type commerce from './locales/id/commerce.json';
 import type dashboard from './locales/id/dashboard.json';
 import type hris from './locales/id/hris.json';
 import type learning from './locales/id/learning.json';
+import type impact from './locales/id/impact.json';
 import type tasks from './locales/id/tasks.json';
 
 declare module 'i18next' {
@@ -21,6 +22,7 @@ declare module 'i18next' {
       hris: typeof hris;
       learning: typeof learning;
       tasks: typeof tasks;
+      impact: typeof impact;
     };
   }
 }

@@ -23,7 +23,7 @@ export default async function ApprovalPage() {
       orderBy: { createdAt: 'asc' },
     }),
     prisma.user.findFirst({
-      where: { tenantId: tenant.id, role: 'OWNER' },
+      where: { tenantId: tenant.id, role: { in: ['OWNER', 'MANAGER'] } },
       select: { id: true, role: true },
     }),
   ]);

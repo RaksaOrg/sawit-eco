@@ -58,7 +58,7 @@ export interface ProductOption {
 interface DiagnosisResult {
   logId: string;
   recommendation: {
-    status: 'VALIDATED' | 'PRODUCT_GAP';
+    status: 'RECOMMENDED' | 'VALIDATED' | 'PRODUCT_GAP';
     card?: {
       sku: string;
       nama: string;
@@ -68,7 +68,15 @@ interface DiagnosisResult {
       estimasiTotalHarga: number;
       disclaimer: string;
     };
+    product?: ProductOption;
+    estimation?: {
+      luasHa: number;
+      totalKg: number;
+      jumlahSak: number;
+      ukuranKemasanKg: number;
+    };
     gapReason?: string;
+    disclaimer?: string;
   };
 }
 
@@ -130,16 +138,18 @@ export default function FioriAgronomyList({
     setSubmitting(true);
     setDiagnosisResult(null);
     try {
+      const skuToSend = selectedSku || products[0]?.sku || 'GAP_PRODUCT_UNKNOWN';
+      const blockToSend = selectedBlock || blocks[0]?.kode || 'A1';
       const res = await fetch('/api/agronomy/diagnose', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          blockCode: selectedBlock || blocks[0]?.kode || 'A1',
+          blockCode: blockToSend,
           symptoms: symptoms.trim(),
-          targetSku: selectedSku,
+          targetSku: skuToSend,
           dosageKgPerHa: Number(dosage) || 150,
           disclaimer: t('agronomy:card.disclaimer'),
-          reason: `Rekomendasi pemupukan/perawatan blok ${selectedBlock || 'A1'} dengan dosis ${dosage} Kg/Ha.`,
+          reason: `Rekomendasi pemupukan/perawatan blok ${blockToSend} dengan dosis ${dosage} Kg/Ha.`,
         }),
       });
 
@@ -148,6 +158,7 @@ export default function FioriAgronomyList({
         throw new Error(json?.error?.message || 'Gagal menjalankan diagnosa');
       }
       setDiagnosisResult(json.data);
+      router.refresh();
     } catch (e) {
       setToastMessage({
         text: e instanceof Error ? e.message : 'Error diagnosa',
@@ -159,10 +170,16 @@ export default function FioriAgronomyList({
   };
 
   const handleAddToCart = async () => {
-    if (!diagnosisResult?.recommendation?.card) return;
-    const card = diagnosisResult.recommendation.card;
-    const targetProduct = products.find((p) => p.sku === card.sku);
+    const rec = diagnosisResult?.recommendation;
+    if (!rec) return;
+
+    const card = rec.card;
+    const sku = card?.sku || rec.product?.sku;
+    const targetProduct = products.find((p) => p.sku === sku) || rec.product;
     if (!targetProduct) return;
+
+    const quantity = card?.kuantitas || rec.estimation?.jumlahSak || 1;
+    const reason = card?.alasan || `Rekomendasi pemupukan/perawatan blok ${selectedBlock || 'A1'}`;
 
     setCartBusy(true);
     try {
@@ -172,10 +189,10 @@ export default function FioriAgronomyList({
         body: JSON.stringify({
           action: 'add-to-cart',
           productId: targetProduct.id,
-          quantity: card.kuantitas,
-          blockCode: selectedBlock,
-          recommendationId: diagnosisResult.logId || '',
-          recommendationReason: card.alasan,
+          quantity,
+          blockCode: selectedBlock || blocks[0]?.kode || 'A1',
+          recommendationId: diagnosisResult?.logId || '',
+          recommendationReason: reason,
         }),
       });
       const json = await res.json();
@@ -258,6 +275,12 @@ export default function FioriAgronomyList({
           onClick={() => {
             setDiagnosisResult(null);
             setSymptoms('');
+            if (!selectedSku && products.length > 0) {
+              setSelectedSku(products[0].sku);
+            }
+            if (!selectedBlock && blocks.length > 0) {
+              setSelectedBlock(blocks[0].kode);
+            }
             setDialogOpen(true);
           }}
         >
@@ -315,6 +338,12 @@ export default function FioriAgronomyList({
                 onAction={() => {
                   setDiagnosisResult(null);
                   setSymptoms('');
+                  if (!selectedSku && products.length > 0) {
+                    setSelectedSku(products[0].sku);
+                  }
+                  if (!selectedBlock && blocks.length > 0) {
+                    setSelectedBlock(blocks[0].kode);
+                  }
                   setDialogOpen(true);
                 }}
               />
@@ -444,74 +473,93 @@ export default function FioriAgronomyList({
             </>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {diagnosisResult.recommendation.status === 'VALIDATED' &&
-              diagnosisResult.recommendation.card ? (
-                <Card
-                  header={
-                    <CardHeader
-                      titleText={t('agronomy:card.product_rec')}
-                      subtitleText={diagnosisResult.recommendation.card.nama}
-                      avatar={<Icon name={fioriIcons['lead']} />}
-                      additionalText={diagnosisResult.recommendation.card.sku}
-                    />
-                  }
-                >
-                  <div
-                    style={{
-                      padding: '1rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.75rem',
-                    }}
-                  >
-                    <div>
-                      <Text style={{ fontWeight: 600, display: 'block' }}>
-                        {t('agronomy:card.reason')}:
-                      </Text>
-                      <Text>{diagnosisResult.recommendation.card.alasan}</Text>
-                    </div>
-
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.5rem 0',
-                        borderTop: '1px solid var(--sapList_BorderColor)',
-                      }}
+              {(diagnosisResult.recommendation.status === 'RECOMMENDED' ||
+                diagnosisResult.recommendation.status === 'VALIDATED') &&
+              (diagnosisResult.recommendation.card ||
+                (diagnosisResult.recommendation.product &&
+                  diagnosisResult.recommendation.estimation)) ? (
+                (() => {
+                  const rec = diagnosisResult.recommendation;
+                  const prod = rec.product;
+                  const est = rec.estimation;
+                  const card = rec.card || {
+                    sku: prod?.sku || '',
+                    nama: prod?.nama || '',
+                    alasan: `Rekomendasi pemupukan/perawatan blok ${selectedBlock || 'A1'} dengan dosis ${dosage} Kg/Ha.`,
+                    kuantitas: est?.jumlahSak || 1,
+                    satuan: prod?.satuan || 'Sak',
+                    estimasiTotalHarga: (est?.jumlahSak || 1) * (prod?.harga || 0),
+                    disclaimer: rec.disclaimer || t('agronomy:card.disclaimer'),
+                  };
+                  return (
+                    <Card
+                      header={
+                        <CardHeader
+                          titleText={t('agronomy:card.product_rec')}
+                          subtitleText={card.nama}
+                          avatar={<Icon name={fioriIcons['lead']} />}
+                          additionalText={card.sku}
+                        />
+                      }
                     >
-                      <span>{t('agronomy:card.est_block')}:</span>
-                      <strong>{`${diagnosisResult.recommendation.card.kuantitas.toLocaleString('id-ID')} ${diagnosisResult.recommendation.card.satuan}`}</strong>
-                    </div>
+                      <div
+                        style={{
+                          padding: '1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.75rem',
+                        }}
+                      >
+                        <div>
+                          <Text style={{ fontWeight: 600, display: 'block' }}>
+                            {t('agronomy:card.reason')}:
+                          </Text>
+                          <Text>{card.alasan}</Text>
+                        </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        padding: '0.5rem 0',
-                      }}
-                    >
-                      <span>{t('agronomy:card.est_cost')}:</span>
-                      <strong style={{ color: 'var(--sapPositiveColor)' }}>
-                        {`Rp ${diagnosisResult.recommendation.card.estimasiTotalHarga.toLocaleString('id-ID')}`}
-                      </strong>
-                    </div>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            padding: '0.5rem 0',
+                            borderTop: '1px solid var(--sapList_BorderColor)',
+                          }}
+                        >
+                          <span>{t('agronomy:card.est_block')}:</span>
+                          <strong>{`${card.kuantitas.toLocaleString('id-ID')} ${card.satuan}`}</strong>
+                        </div>
 
-                    <MessageStrip design="Critical" hideCloseButton>
-                      {diagnosisResult.recommendation.card.disclaimer}
-                    </MessageStrip>
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            padding: '0.5rem 0',
+                          }}
+                        >
+                          <span>{t('agronomy:card.est_cost')}:</span>
+                          <strong style={{ color: 'var(--sapPositiveColor)' }}>
+                            {`Rp ${card.estimasiTotalHarga.toLocaleString('id-ID')}`}
+                          </strong>
+                        </div>
 
-                    <Button
-                      design="Emphasized"
-                      icon={fioriIcons['cart']}
-                      loading={cartBusy}
-                      disabled={cartBusy}
-                      onClick={handleAddToCart}
-                      style={{ marginTop: '0.5rem' }}
-                    >
-                      {t('agronomy:card.add_to_cart')}
-                    </Button>
-                  </div>
-                </Card>
+                        <MessageStrip design="Critical" hideCloseButton>
+                          {card.disclaimer}
+                        </MessageStrip>
+
+                        <Button
+                          design="Emphasized"
+                          icon={fioriIcons['cart']}
+                          loading={cartBusy}
+                          disabled={cartBusy}
+                          onClick={handleAddToCart}
+                          style={{ marginTop: '0.5rem' }}
+                        >
+                          {t('agronomy:card.add_to_cart')}
+                        </Button>
+                      </div>
+                    </Card>
+                  );
+                })()
               ) : (
                 <MessageStrip design="Negative" hideCloseButton>
                   <strong>{t('agronomy:gap.banner_title')}</strong>

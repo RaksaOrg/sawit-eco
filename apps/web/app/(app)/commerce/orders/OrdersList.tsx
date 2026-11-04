@@ -180,6 +180,7 @@ export default function OrdersList({
               <Option value="ALL">{t('common:filter.all_status')}</Option>
               <Option value="SUBMITTED">{t('commerce:orders.status_submitted')}</Option>
               <Option value="APPROVED">{t('commerce:orders.status_approved')}</Option>
+              <Option value="PAID">{t('commerce:orders.status_paid')}</Option>
               <Option value="REJECTED">{t('commerce:orders.status_rejected')}</Option>
               <Option value="DELIVERED">{t('commerce:orders.status_delivered')}</Option>
             </Select>
