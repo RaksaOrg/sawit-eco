@@ -1,11 +1,7 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import {
-  createSession,
-  verifyPassword,
-  type SessionRole,
-} from '@/lib/auth';
+import { logServerError } from '@/lib/logger';
+import { createSession, verifyPassword, type SessionRole } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,7 +34,7 @@ function invalidCredentials() {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({})) as {
+    const body = (await req.json().catch(() => ({}))) as {
       email?: string;
       waNumber?: string;
       password?: string;
@@ -48,10 +44,7 @@ export async function POST(req: NextRequest) {
     const role = body.role ?? 'OWNER';
     const password = body.password;
 
-    if (
-      !password ||
-      !['OWNER', 'MANDOR'].includes(role)
-    ) {
+    if (!password || !['OWNER', 'MANDOR'].includes(role)) {
       return NextResponse.json(
         {
           success: false,
@@ -124,10 +117,7 @@ export async function POST(req: NextRequest) {
       return invalidCredentials();
     }
 
-    const passwordValid = verifyPassword(
-      password,
-      user.passwordHash,
-    );
+    const passwordValid = verifyPassword(password, user.passwordHash);
 
     if (!passwordValid) {
       return invalidCredentials();
@@ -161,7 +151,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[LOGIN_ERROR]', error);
+    logServerError('[LOGIN_ERROR]', error);
 
     return NextResponse.json(
       {
