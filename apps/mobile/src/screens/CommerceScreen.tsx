@@ -223,70 +223,7 @@ export function CommerceScreen({
   };
 
   return (
-    <AppScreen>
-      {/* HEADER */}
-      <View style={styles.topHeader}>
-        <View style={styles.brandGroup}>
-          <Image
-            source={require('../../assets/brand-logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-
-          <View style={styles.brandTextCol}>
-            <Text style={styles.brandSawit}>
-              {t('login.brand1')}
-            </Text>
-
-            <Text style={styles.brandEco}>
-              {t('login.brand2')}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <Pressable
-            style={styles.bellButton}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Notifications"
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={20}
-              color={semanticTokens.color.brand}
-            />
-          </Pressable>
-
-          <View style={styles.cartBtnWrapper}>
-            <Pressable
-              style={styles.cartButton}
-              hitSlop={8}
-              onPress={() => navigation?.navigate('Cart')}
-              accessibilityRole="button"
-              accessibilityLabel="Shopping cart"
-              accessibilityState={{
-                selected: cart.length > 0,
-              }}
-            >
-              <Ionicons
-                name="cart-outline"
-                size={20}
-                color={semanticTokens.color.textPrimary}
-              />
-
-              {totalCartCount > 0 && (
-                <View style={styles.cartBadge}>
-                  <Text style={styles.cartBadgeText}>
-                    {totalCartCount}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-          </View>
-        </View>
-      </View>
-
+    <AppScreen showTopHeader onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}>
       {/* TITLE */}
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>
@@ -659,92 +596,6 @@ export function CommerceScreen({
 }
 
 const styles = StyleSheet.create({
-  topHeader: {
-    height: 52,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: tTokens.spacing.sm,
-  },
-
-  brandGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.xs,
-  },
-
-  logo: {
-    width: 32,
-    height: 32,
-  },
-
-  brandTextCol: {
-    justifyContent: 'center',
-  },
-
-  brandSawit: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-
-  brandEco: {
-    color: semanticTokens.color.brand,
-    fontSize: tTokens.typography.labelLarge.size,
-    lineHeight: tTokens.typography.labelLarge.lineHeight,
-    fontWeight: '800',
-  },
-
-  headerRightActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: tTokens.spacing.sm,
-  },
-
-  bellButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.badge.success.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  cartBtnWrapper: {
-    position: 'relative',
-  },
-
-  cartButton: {
-    width: 36,
-    height: 36,
-    borderRadius: tTokens.radius.full,
-    backgroundColor: semanticTokens.color.surface,
-    borderWidth: tTokens.borderWidth.hairline,
-    borderColor: semanticTokens.color.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  cartBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: semanticTokens.color.error,
-    borderRadius: tTokens.radius.full,
-    minWidth: 18,
-    height: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-
-  cartBadgeText: {
-    color: semanticTokens.color.surface,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-
   titleSection: {
     marginTop: tTokens.spacing.xs,
     marginBottom: tTokens.spacing.md,
@@ -797,8 +648,6 @@ const styles = StyleSheet.create({
     fontSize: tTokens.typography.bodyMedium.size,
     lineHeight: tTokens.typography.bodyMedium.lineHeight,
     color: semanticTokens.color.textSecondary,
-    textAlign: 'center',
-    marginBottom: tTokens.spacing.md,
   },
 
   orderInfoRow: {
