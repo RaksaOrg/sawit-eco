@@ -213,12 +213,12 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             <View style={styles.stepIllustration}>
               <Image
                 source={
-                  step === 0
-                    ? require('../../assets/illustrations/liveness_1.png')
+                  step === 2
+                    ? require('../../assets/illustrations/liveness_3.png')
                     : require('../../assets/illustrations/liveness_2.png')
                 }
                 resizeMode="contain"
-                style={[styles.stepImage, step === 1 && styles.stepImageFlipped]}
+                style={[styles.stepImage, step === 0 && styles.stepImageFlipped]}
               />
             </View>
             <View style={styles.divider} />
