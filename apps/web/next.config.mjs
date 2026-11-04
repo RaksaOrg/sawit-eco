@@ -6,6 +6,7 @@ const workspaceRoot = resolve(projectRoot, '../..');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: 'build',
   turbopack: {
     root: workspaceRoot,
   },
