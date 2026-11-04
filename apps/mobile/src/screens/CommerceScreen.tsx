@@ -50,6 +50,14 @@ type CartResponse = {
   item?: any;
   total?: number;
   count?: number;
+  data?: {
+    id?: string;
+    items?: any[];
+    cart?: any[];
+    item?: any;
+    total?: number;
+    count?: number;
+  };
 };
 
 type AddedProduct = {
@@ -71,7 +79,6 @@ export function CommerceScreen({
   const cart = useMobileAppStore((s) => s.cart);
   const addToCart = useMobileAppStore((s) => s.addToCart);
   const clearCart = useMobileAppStore((s) => s.clearCart);
-  const removeFromCart = useMobileAppStore((s) => s.removeFromCart);
 
   const t = createTranslator(language);
 
@@ -89,55 +96,78 @@ export function CommerceScreen({
   const [addedProduct, setAddedProduct] = useState<AddedProduct | null>(null);
   const [showCartSuccess, setShowCartSuccess] = useState(false);
 
+  // Mapping productId -> backend cartItemId
+  const [cartItemIds, setCartItemIds] = useState<Record<string, string>>({});
+
   const money = (value: number) =>
     `Rp ${(Number(value) || 0).toLocaleString('id-ID')}`;
 
   // FETCH CART
-  useEffect(() => {
-    if (session?.userId) {
-      fetchCartFromBackend();
-    }
-  }, [session?.userId]);
-
   const fetchCartFromBackend = async () => {
     try {
       const response = await apiRequest<CartResponse>(
         '/api/commerce/cart',
       );
 
-      const backendCart = Array.isArray(response?.items)
-        ? response.items
-        : Array.isArray(response?.cart)
-          ? response.cart
+      // Support both direct response and wrapped API response.
+      const payload: any = response?.data ?? response;
+
+      const backendCart = Array.isArray(payload?.items)
+        ? payload.items
+        : Array.isArray(payload?.cart)
+          ? payload.cart
           : [];
 
-      const normalizedCart: CartItem[] = backendCart
-        .map((item: any) => ({
-          productId: item.productId ?? item.id,
-          name: item.productName ?? item.name ?? '',
-          sku: item.sku ?? '',
-          price: Number(item.harga ?? item.price ?? 0),
-          quantity: Number(item.kuantitas ?? item.quantity ?? 1),
-          blockCode: item.blokKode ?? item.blockCode ?? 'B2',
-          recommendationId: item.recommendationId,
-          reason:
-            item.alasanRekomendasi ??
-            item.recommendationReason ??
-            item.reason,
-        }))
-        .filter(
-          (item: CartItem) =>
-            typeof item.productId === 'string' &&
-            item.productId.length > 0,
-        );
+      const nextCartItemIds: Record<string, string> = {};
+
+      const normalizedCart = backendCart
+        .map((item: any) => {
+          const cartItemId = item.id;
+          const productId = item.productId;
+
+          if (
+            typeof cartItemId !== 'string' ||
+            typeof productId !== 'string' ||
+            !productId
+          ) {
+            return null;
+          }
+
+          nextCartItemIds[productId] = cartItemId;
+
+          return {
+            productId,
+            name: item.productName ?? item.name ?? '',
+            sku: item.sku ?? '',
+            price: Number(item.harga ?? item.price ?? 0),
+            quantity: Number(item.kuantitas ?? item.quantity ?? 1),
+            blockCode: item.blokKode ?? item.blockCode ?? 'B2',
+            recommendationId: item.recommendationId,
+            reason:
+              item.alasanRekomendasi ??
+              item.recommendationReason ??
+              item.reason,
+          };
+        })
+        .filter(Boolean) as CartItem[];
+
+      setCartItemIds(nextCartItemIds);
 
       clearCart();
-
       normalizedCart.forEach((item) => addToCart(item));
     } catch (err) {
       console.error('[CART] Failed to fetch:', err);
     }
   };
+
+  useEffect(() => {
+    if (session?.userId) {
+      fetchCartFromBackend();
+    } else {
+      clearCart();
+      setCartItemIds({});
+    }
+  }, [session?.userId]);
 
   // CART TOTAL
   const totalCart = (cart ?? []).reduce(
@@ -189,7 +219,7 @@ export function CommerceScreen({
     setOrderNotice(null);
 
     try {
-      const response = await apiRequest<CartResponse>(
+      await apiRequest<CartResponse>(
         '/api/commerce/cart',
         {
           method: 'POST',
@@ -203,54 +233,9 @@ export function CommerceScreen({
         },
       );
 
-      // Backend response may contain the updated cart item.
-      // Use its quantity when available to avoid local mismatch.
-      const backendItem = response?.item;
-
-      const updatedQuantity = Number(
-        backendItem?.quantity ??
-        backendItem?.kuantitas ??
-        quantity,
-      );
-
-      const finalQuantity =
-        Number.isFinite(updatedQuantity) && updatedQuantity > 0
-          ? updatedQuantity
-          : quantity;
-
-      // Zustand addToCart is assumed to merge by productId.
-      // If backend provides total quantity, add only the difference.
-      const existingItem = cart.find(
-        (item) => item.productId === product.id,
-      );
-
-      const currentQuantity = Number(existingItem?.quantity) || 0;
-      const quantityToAdd = Math.max(
-        0,
-        finalQuantity - currentQuantity,
-      );
-
-      if (quantityToAdd > 0) {
-        addToCart({
-          productId: product.id,
-          name: product.nama ?? '',
-          sku: product.sku ?? '',
-          price: product.harga ?? 0,
-          quantity: quantityToAdd,
-          blockCode: 'B2',
-          reason,
-        });
-      } else if (!existingItem) {
-        addToCart({
-          productId: product.id,
-          name: product.nama ?? '',
-          sku: product.sku ?? '',
-          price: product.harga ?? 0,
-          quantity,
-          blockCode: 'B2',
-          reason,
-        });
-      }
+      // Backend is the source of truth.
+      // Refresh to retrieve the actual cart item ID and quantity.
+      await fetchCartFromBackend();
 
       showSuccess({
         name: product.nama ?? '',
@@ -291,13 +276,32 @@ export function CommerceScreen({
   const handleRemoveFromCart = async (productId: string) => {
     if (isSubmitting || loadingProductId) return;
 
-    try {
-      await apiRequest('/api/commerce/cart', {
-        method: 'DELETE',
-        body: JSON.stringify({ itemId: productId }),
+    const cartItemId = cartItemIds[productId];
+
+    if (!cartItemId) {
+      console.error(
+        '[CART] cartItemId not found for product:',
+        productId,
+      );
+
+      setOrderNotice({
+        type: 'error',
+        message: t('cart.remove_failed'),
       });
 
-      removeFromCart(productId);
+      await fetchCartFromBackend();
+      return;
+    }
+
+    try {
+      await apiRequest(
+        `/api/commerce/cart?itemId=${encodeURIComponent(cartItemId)}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      await fetchCartFromBackend();
       setOrderNotice(null);
     } catch (err) {
       console.error('[CART] Remove failed:', err);
@@ -355,6 +359,7 @@ export function CommerceScreen({
       const order = response?.order;
 
       clearCart();
+      setCartItemIds({});
       setAcknowledged(false);
 
       setOrderNotice({
@@ -668,7 +673,7 @@ export function CommerceScreen({
 
           {cart.filter(Boolean).map((item: CartItem) => (
             <View
-              key={item.productId}
+              key={cartItemIds[item.productId] ?? item.productId}
               style={styles.cartItem}
             >
               <View style={styles.cartItemInfo}>

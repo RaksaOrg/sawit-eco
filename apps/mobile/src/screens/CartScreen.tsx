@@ -234,12 +234,12 @@ export function CartScreen({ navigation }: CartScreenProps) {
       });
 
       // 1. Delete actual cart row from backend.
-      await apiRequest('/api/commerce/cart', {
-        method: 'DELETE',
-        body: JSON.stringify({
-          itemId: cartItemId,
-        }),
-      });
+      await apiRequest(
+        `/api/commerce/cart?itemId=${encodeURIComponent(cartItemId)}`,
+        {
+          method: 'DELETE',
+        },
+      );
 
       console.log('[CART DELETE] Backend success:', cartItemId);
 
