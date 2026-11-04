@@ -89,8 +89,10 @@ const dictionaries = {
     'learning.quizFailed': 'Kuis belum lulus, coba lagi',
     'learning.progressSaved': 'Progres belajar tersimpan',
     'commerce.title': 'Rekomendasi Produk',
+    'commerce.subtitle': 'Temukan produk terbaik untuk mendukung produktivitas pertanian Anda.',
     'commerce.addToCart': 'Tambah ke Keranjang',
     'commerce.cart_total': 'Total',
+    'commerce.cart.title': 'Keranjang Pengadaan',
     'commerce.agronomy_recommendation': 'Rekomendasi Agronomi Aktif',
     'commerce.catalog_title': 'Katalog Sarana Produksi',
     'commerce.catalog_empty_sub': 'Katalog pupuk dan herbisida akan tampil di sini',
@@ -241,6 +243,9 @@ const dictionaries = {
     'selfie.later': 'Verifikasi Nanti',
     'selfie.security':
       'Tiga foto selfie dikirim ke layanan Meta untuk pemeriksaan liveness dan tidak disimpan oleh aplikasi.',
+    'cart.remove_failed': 'Gagal Menghapus Product',
+    'commerce.itemAdded': 'Product Ditambah',
+    'cart.add_failed': 'Gagal Menambah Product'
   },
   en: {
     'app.name': 'SawitEco',
@@ -332,6 +337,9 @@ const dictionaries = {
     'commerce.title': 'Product Recommendations',
     'commerce.addToCart': 'Add to Cart',
     'commerce.cart_total': 'Total',
+    'commerce.cartTotal': 'Total Cart',
+    'commerce.subtitle': 'Discover the best products to support your agricultural productivity.',
+    'commerce.cart.title': 'Procurement Cart',
     'commerce.agronomy_recommendation': 'Active Agronomy Recommendations',
     'commerce.catalog_title': 'Input Product Catalog',
     'commerce.catalog_empty_sub': 'Fertilizer and pesticide catalog will appear here',
@@ -482,6 +490,9 @@ const dictionaries = {
     'selfie.later': 'Verify Later',
     'selfie.security':
       'Three selfie photos are sent to Meta for liveness screening and are not stored by the app.',
+    'cart.remove_failed': 'Failed to Remove Item',
+    'commerce.itemAdded': 'Item Added',
+    'cart.add_failed': 'Failed to Add Item'
   },
 } as const;
 

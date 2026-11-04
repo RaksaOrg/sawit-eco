@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from './client';
 
 export interface MobileTask {
@@ -50,6 +50,24 @@ export interface MobileOrder {
   items: Array<{ blokKode: string; alasanRekomendasi: string | null; kuantitas: number }>;
 }
 
+export interface CartItem {
+  productId: string;
+  productSku: string;
+  productName: string;
+  harga: number;
+  satuan: string;
+  jumlah: number;
+  blokKode: string;
+  alasanRekomendasi?: string;
+  totalPrice: number;
+}
+
+export interface CartState {
+  items: CartItem[];
+  totalHarga: number;
+  isEmpty: boolean;
+}
+
 export function useTasks() {
   return useQuery({
     queryKey: ['tasks'],
@@ -84,10 +102,80 @@ export function usePendingOrders() {
   return useQuery({
     queryKey: ['pending-orders'],
     queryFn: async () => {
-      const data = await apiRequest<{ orders: MobileOrder[] }>(
-        '/api/commerce/orders?status=SUBMITTED',
-      );
+      const data = await apiRequest<{ orders: MobileOrder[] }>('/api/commerce/orders?status=SUBMITTED');
       return data.orders;
+    },
+  });
+}
+
+export function useCart() {
+  return useQuery({
+    queryKey: ['cart'],
+    queryFn: async () => {
+      const data = await apiRequest('/api/commerce/cart') as {
+        cart: CartItem[];
+      };
+
+      const items = data.cart ?? [];
+
+      return {
+        items,
+        totalHarga: items.reduce(
+          (sum, item) => sum + item.totalPrice,
+          0,
+        ),
+        isEmpty: items.length === 0,
+      };
+    },
+  });
+}
+
+export function useUpdateCart() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      action: 'ADD' | 'UPDATE' | 'REMOVE';
+      productId?: string;
+      data?: Partial<CartItem>;
+    }) => {
+      return apiRequest('/api/commerce/cart', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+    },
+  });
+}
+
+export function useSubmitOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: {
+      userId: string;
+      estimateAcknowledged: boolean;
+      idempotencyKey: string;
+      items: Array<{
+        productId: string;
+        quantity: number;
+        blockCode: string;
+        recommendationReason?: string;
+      }>;
+    }) => {
+      return apiRequest('/api/commerce/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'mobile-checkout',
+          ...payload,
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-orders'] });
     },
   });
 }

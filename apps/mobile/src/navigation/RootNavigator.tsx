@@ -14,6 +14,7 @@ import { AttendanceScreen } from '../screens/AttendanceScreen';
 import { LearningScreen } from '../screens/LearningScreen';
 import { LearningDetailScreen } from '../screens/LearningDetailScreen';
 import { CommerceScreen } from '../screens/CommerceScreen';
+import { CartScreen } from '../screens/CartScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { ApprovalScreen } from '../screens/ApprovalScreen';
 import { DiagnosisScreen } from '../screens/DiagnosisScreen';
@@ -30,6 +31,7 @@ export type RootStackParamList = {
   Diagnosis: undefined;
   LearningDetail: { module: LearningModule; localUri?: string };
   Approvals: undefined;
+  Cart: undefined;
   AccountManagement: { verification?: 'success' | 'error'; source?: string } | undefined;
   SelfieVerification: { source?: string; attendanceAction?: 'CHECK_IN' | 'CHECK_OUT' } | undefined;
 };
@@ -122,6 +124,7 @@ export function RootNavigator() {
         {({ route, navigation }) => <LearningDetailScreen route={route} navigation={navigation} />}
       </Stack.Screen>
       <Stack.Screen name="Approvals" component={ApprovalScreen} />
+      <Stack.Screen name="Cart" component={CartScreen} />
       <Stack.Screen name="AccountManagement">
         {({ navigation, route }) => (
           <AccountManagementScreen navigation={navigation} route={route} />

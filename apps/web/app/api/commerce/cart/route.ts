@@ -134,34 +134,69 @@ export async function POST(req: NextRequest) {
   }
 }
 
+
 export async function DELETE(req: NextRequest) {
   try {
     const tenant = await requireTenant(req);
     const itemId = req.nextUrl.searchParams.get('itemId');
 
-    if (itemId) {
-      await prisma.cartItem.deleteMany({
-        where: {
-          id: itemId,
-          cart: { tenantId: tenant.id },
+    // Never allow accidental cart deletion.
+    if (!itemId || !itemId.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'itemId wajib diisi',
+          },
         },
-      });
-    } else {
-      // Clear all active cart items
-      const cart = await prisma.cart.findFirst({
-        where: { tenantId: tenant.id, status: 'ACTIVE' },
-      });
-      if (cart) {
-        await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-      }
+        { status: 400 },
+      );
     }
 
-    return NextResponse.json({ success: true });
+    const result = await prisma.cartItem.deleteMany({
+      where: {
+        id: itemId,
+        cart: {
+          tenantId: tenant.id,
+          status: 'ACTIVE',
+        },
+      },
+    });
+
+    if (result.count === 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Item keranjang tidak ditemukan',
+          },
+        },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: result.count,
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Gagal menghapus item keranjang';
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'Gagal menghapus item keranjang';
+
     return NextResponse.json(
-      { success: false, error: { code: 'INTERNAL_ERROR', message } },
+      {
+        success: false,
+        error: {
+          code: 'INTERNAL_ERROR',
+          message,
+        },
+      },
       { status: 500 },
     );
   }
 }
+
