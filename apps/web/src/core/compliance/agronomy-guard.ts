@@ -1,5 +1,6 @@
 export const MANDATORY_AGRONOMY_DISCLAIMER =
   'Sesuaikan dengan hasil analisa daun/tanah dan label resmi produk.';
+export const PRODUCT_GAP_SKU = 'SKU_GAP_PRODUCT_UNKNOWN';
 
 export interface CatalogProductLookup {
   id: string;

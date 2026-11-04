@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   void req;
   const env = process.env;
   const mockEnabled = isModelMockEnabled(env);
-  const apiKey = (env.MODEL_API_KEY || env.INFERENCE_API_KEY || '').trim();
+  const apiKey = (env.META_API_KEY || '').trim();
   const apiKeyConfigured = apiKey.length > 0;
   const reasoningConfig = resolveInferenceConfig(env);
   const visionConfig = resolveVisionConfig(env);

@@ -10,21 +10,21 @@ describe('inference engine tests', () => {
     expect(resolveInferenceConfig({})).toBeNull();
     expect(resolveInferenceConfig({ META_INFERENCE_ENDPOINT: 'https://x' })).toBeNull();
     expect(
-      resolveInferenceConfig({ META_INFERENCE_ENDPOINT: '   ', MODEL_API_KEY: 'k' }),
+      resolveInferenceConfig({ META_INFERENCE_ENDPOINT: '   ', META_API_KEY: 'k' }),
     ).toBeNull();
     expect(
-      resolveInferenceConfig({ META_INFERENCE_ENDPOINT: 'https://x', MODEL_API_KEY: '   ' }),
+      resolveInferenceConfig({ META_INFERENCE_ENDPOINT: 'https://x', META_API_KEY: '   ' }),
     ).toBeNull();
-    expect(resolveInferenceConfig({ MODEL_API_KEY: 'k' })).toBeNull();
+    expect(resolveInferenceConfig({ META_API_KEY: 'k' })).toBeNull();
     expect(
       resolveInferenceConfig({
         META_INFERENCE_ENDPOINT: '',
-        MODEL_API_KEY: '',
+        META_API_KEY: '',
       }),
     ).toBeNull();
     const customConf = resolveInferenceConfig({
       META_INFERENCE_ENDPOINT: 'https://baseten.mock/v1',
-      MODEL_API_KEY: 'sec-123',
+      META_API_KEY: 'sec-123',
       META_MODEL: 'custom-model',
       META_INFERENCE_TIMEOUT_MS: '15000',
     });
@@ -33,18 +33,18 @@ describe('inference engine tests', () => {
 
     const emptyModelConf = resolveInferenceConfig({
       META_INFERENCE_ENDPOINT: 'https://baseten.mock/v1',
-      MODEL_API_KEY: 'sec-123',
+      META_API_KEY: 'sec-123',
       META_MODEL: '   ',
       META_INFERENCE_TIMEOUT_MS: '0',
     });
-    expect(emptyModelConf?.model).toContain('Llama-3.3-70B');
+    expect(emptyModelConf?.model).toBe('muse-spark-1.3');
     expect(emptyModelConf?.timeoutMs).toBe(30000);
     const conf = resolveInferenceConfig({
       META_INFERENCE_ENDPOINT: 'https://baseten.mock/v1',
-      MODEL_API_KEY: 'sec-123',
+      META_API_KEY: 'sec-123',
     });
     expect(conf?.endpoint).toBe('https://baseten.mock/v1');
-    expect(conf?.model).toContain('Llama-3.3-70B');
+    expect(conf?.model).toBe('muse-spark-1.3');
   });
 
   it('completes inference via provider mock fetch', async () => {
@@ -143,17 +143,17 @@ describe('inference engine tests', () => {
     expect(defaultFetchRes.text).toBe('OK');
 
     process.env.META_INFERENCE_ENDPOINT = 'https://x';
-    process.env.MODEL_API_KEY = 'k';
+    process.env.META_API_KEY = 'k';
     const resEnvDefault = await queryMetaInferenceEngine({
       messages: [{ role: 'user', content: 'halo' }],
     });
     expect(resEnvDefault.text).toBe('OK');
     delete process.env.META_INFERENCE_ENDPOINT;
-    delete process.env.MODEL_API_KEY;
+    delete process.env.META_API_KEY;
 
     const res = await queryMetaInferenceEngine(
       { messages: [{ role: 'user', content: 'halo' }] },
-      { META_INFERENCE_ENDPOINT: 'https://x', MODEL_API_KEY: 'k' },
+      { META_INFERENCE_ENDPOINT: 'https://x', META_API_KEY: 'k' },
     );
     global.fetch = originalFetch;
     expect(res.text).toBe('OK');
@@ -209,8 +209,8 @@ it('triggers abort signal on timeout', async () => {
   await expect(provider.complete({ messages: [] })).rejects.toThrow('Inference failed: aborted');
 });
 
-describe('MODEL_API_KEY guard for reasoning endpoint', () => {
-  it('skips the endpoint when MODEL_API_KEY is missing, empty, or undefined', async () => {
+describe('META_API_KEY guard for reasoning endpoint', () => {
+  it('skips the endpoint when META_API_KEY is missing, empty, or undefined', async () => {
     for (const key of [undefined, '']) {
       const fetchMock = jest.fn();
       await expect(
@@ -218,7 +218,7 @@ describe('MODEL_API_KEY guard for reasoning endpoint', () => {
           { messages: [] },
           {
             META_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/chat/completions',
-            MODEL_API_KEY: key,
+            META_API_KEY: key,
           },
           fetchMock as unknown as typeof fetch,
         ),

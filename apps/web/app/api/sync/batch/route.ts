@@ -8,7 +8,7 @@ import { attendanceCreateSchema, lessonProgressSchema, syncBatchSchema } from '@
 import { hkValue } from '@/src/core/hris/kpi';
 import { maskPii } from '@/src/core/privacy/pdp-guard';
 import { querySamSegmentation } from '@/src/core/ai/sam';
-import { recordModelTrigger } from '@/lib/model-trigger';
+import { getModelProvider, recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 
@@ -182,11 +182,24 @@ export async function POST(req: NextRequest) {
               process.env,
               fetch,
             );
+            if (sam.providerAttemptFailed) {
+              await recordModelTrigger({
+                tenantId: tenant.id,
+                traceId: event.id,
+                route: '/api/sync/batch',
+                provider: getModelProvider(sam.endpointUsed),
+                model: sam.modelUsed,
+                operation: 'IMAGE_SEGMENTATION',
+                status: 'FAILED',
+                startedAt,
+                errorCode: 'PROVIDER_REQUEST_FAILED',
+              });
+            }
             await recordModelTrigger({
               tenantId: tenant.id,
               traceId: event.id,
               route: '/api/sync/batch',
-              provider: sam.isSimulated ? 'local-fallback' : 'sam-inference',
+              provider: sam.isSimulated ? 'local-fallback' : getModelProvider(sam.endpointUsed),
               model: sam.modelUsed,
               operation: 'IMAGE_SEGMENTATION',
               status: 'SUCCEEDED',
@@ -200,7 +213,7 @@ export async function POST(req: NextRequest) {
               tenantId: tenant.id,
               traceId: event.id,
               route: '/api/sync/batch',
-              provider: 'sam-inference',
+              provider: getModelProvider(process.env.SAM_INFERENCE_ENDPOINT),
               model: process.env.SAM_MODEL || 'sam-3.1',
               operation: 'IMAGE_SEGMENTATION',
               status: 'FAILED',

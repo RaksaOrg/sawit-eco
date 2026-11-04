@@ -21,6 +21,7 @@ export interface SamSegmentationResult {
   isSimulated: boolean;
   endpointUsed?: string;
   isMock?: boolean;
+  providerAttemptFailed?: boolean;
 }
 
 export interface SamConfig {
@@ -45,7 +46,7 @@ export function resolveSamConfig(
   env: Record<string, string | undefined> = process.env,
 ): SamConfig | null {
   const endpointRaw = env.SAM_INFERENCE_ENDPOINT ? env.SAM_INFERENCE_ENDPOINT.trim() : '';
-  const apiKeyRaw = env.MODEL_API_KEY || env.INFERENCE_API_KEY || '';
+  const apiKeyRaw = env.META_API_KEY || '';
   const apiKey = apiKeyRaw.trim();
   if (!endpointRaw || !apiKey) return null;
   const modelRaw = env.SAM_MODEL ? env.SAM_MODEL.trim() : '';
@@ -187,6 +188,8 @@ export async function querySamSegmentation(
     return {
       ...segmentCommodityFeature(request, env),
       isSimulated: true,
+      providerAttemptFailed: true,
+      modelUsed: config.model,
       endpointUsed: config.endpoint,
     };
   } finally {

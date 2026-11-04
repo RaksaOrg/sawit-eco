@@ -1,5 +1,17 @@
 import { prisma } from '@/lib/prisma';
 
+export function getModelProvider(endpoint: string | undefined, fallback = 'unknown'): string {
+  if (!endpoint) return fallback;
+  try {
+    const host = new URL(endpoint).hostname.toLowerCase();
+    if (host === 'api.meta.ai' || host.endsWith('.meta.ai')) return 'meta';
+    if (host === 'api.openai.com' || host.endsWith('.openai.com')) return 'openai';
+    return 'openai-compatible';
+  } catch {
+    return fallback;
+  }
+}
+
 type ModelTriggerInput = {
   tenantId: string;
   traceId: string;

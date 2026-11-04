@@ -5,7 +5,7 @@ import { runFourStageAgentPipeline } from '@/src/core/agent/multi-stage-pipeline
 import { queryMetaInferenceEngine } from '@/src/core/ai/inference';
 import { agentPipelineRequestSchema } from '@sawit/contracts';
 import { isModelMockEnabled } from '@/src/core/ai/mock';
-import { recordModelTrigger } from '@/lib/model-trigger';
+import { getModelProvider, recordModelTrigger } from '@/lib/model-trigger';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,11 +70,11 @@ export async function POST(req: NextRequest) {
       },
       queryInference: async (reqPayload) => {
         const startedAt = Date.now();
-        const model = process.env.META_MODEL?.trim() || 'meta-llama/Llama-3.3-70B-Instruct';
+        const model = process.env.META_MODEL?.trim() || 'muse-spark-1.3';
         try {
           if (
             !isModelMockEnabled() &&
-            (!process.env.META_INFERENCE_ENDPOINT || !process.env.MODEL_API_KEY)
+            (!process.env.META_INFERENCE_ENDPOINT || !process.env.META_API_KEY)
           ) {
             throw new Error('Endpoint not configured');
           }
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
             tenantId: tenant.id,
             traceId,
             route: '/api/agent/pipeline',
-            provider: result.provider,
+            provider: getModelProvider(process.env.META_INFERENCE_ENDPOINT, result.provider),
             model: result.model,
             operation: 'TEXT_INFERENCE',
             status: 'SUCCEEDED',
@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
             tenantId: tenant.id,
             traceId,
             route: '/api/agent/pipeline',
-            provider: 'meta',
+            provider: getModelProvider(process.env.META_INFERENCE_ENDPOINT),
             model,
             operation: 'TEXT_INFERENCE',
             status: 'FAILED',

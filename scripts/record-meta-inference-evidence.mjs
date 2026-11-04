@@ -33,7 +33,7 @@ async function recordLlamaReasoning() {
   console.log('\n[1/4] Probing Meta Llama 3.3 70B Reasoning Engine...');
   const endpoint = env.META_INFERENCE_ENDPOINT || 'http://localhost:11434/v1/chat/completions';
   const model = env.META_MODEL || 'llama3.2';
-  const apiKey = env.INFERENCE_API_KEY || 'ollama-local';
+  const apiKey = env.META_API_KEY || 'ollama-local';
 
   const requestPayload = {
     model,
@@ -113,7 +113,7 @@ async function recordMetaVision() {
   console.log('\n[2/4] Probing Meta Llama 3.2 90B Vision Engine...');
   const endpoint = env.VISION_INFERENCE_ENDPOINT || env.META_INFERENCE_ENDPOINT || 'http://localhost:11434/v1/chat/completions';
   const model = env.VISION_MODEL || 'llama3.2-vision';
-  const apiKey = env.INFERENCE_API_KEY || 'ollama-local';
+  const apiKey = env.META_API_KEY || 'ollama-local';
 
   // 1x1 test pixel
   const sampleBase64 =
@@ -199,7 +199,7 @@ async function recordSamSegmentation() {
   console.log('\n[3/4] Probing Meta SAM 3.1 Segmentation Model...');
   const endpoint = env.SAM_INFERENCE_ENDPOINT || 'https://api.baseten.co/v1/models/sam-3.1/predict';
   const model = env.SAM_MODEL || 'meta/sam-3.1-segment-anything';
-  const apiKey = env.INFERENCE_API_KEY || 'simulated';
+  const apiKey = env.META_API_KEY || 'simulated';
 
   const requestPayload = {
     model,
@@ -257,7 +257,7 @@ async function recordWhisperASR() {
   console.log('\n[4/4] Probing Whisper Large V3 ASR Transcriber...');
   const endpoint = env.ASR_INFERENCE_ENDPOINT || 'https://api.fireworks.ai/inference/v1/audio/transcriptions';
   const model = env.ASR_MODEL || 'whisper-large-v3';
-  const apiKey = env.INFERENCE_API_KEY || 'simulated';
+  const apiKey = env.META_API_KEY || 'simulated';
 
   const requestPayload = {
     model,

@@ -62,7 +62,7 @@ export function resolveVisionConfig(
     : env.META_INFERENCE_ENDPOINT
       ? env.META_INFERENCE_ENDPOINT.trim()
       : '';
-  const rawApiKey = env.MODEL_API_KEY || env.INFERENCE_API_KEY || '';
+  const rawApiKey = env.META_API_KEY || '';
   const apiKey = rawApiKey.trim();
   if (!endpoint || !apiKey) return null;
   const modelRaw = env.VISION_MODEL ? env.VISION_MODEL.trim() : '';
@@ -247,6 +247,7 @@ export async function queryMetaVisionInference(
   request: VisionInferenceRequest,
   env: Record<string, string | undefined> = process.env,
   fetchImpl: FetchLike = fetch,
+  onProviderFailure?: (error: unknown, model: string) => Promise<void>,
 ): Promise<VisionInferenceResult> {
   if (isModelMockEnabled(env)) {
     return {
@@ -274,7 +275,8 @@ export async function queryMetaVisionInference(
   try {
     const provider = createVisionInferenceProvider(config, fetchImpl);
     return await provider.analyzeImage(request);
-  } catch {
+  } catch (error) {
+    await onProviderFailure?.(error, config.model);
     return analyzeImageFallback(request);
   }
 }

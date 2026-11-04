@@ -130,12 +130,12 @@ export async function extractDesignSpec(
   imagePath: string,
   options: DesignVisionExtractOptions = {},
 ): Promise<string> {
-  const apiKey = options.apiKey || process.env.MODEL_API_KEY;
+  const apiKey = options.apiKey || process.env.META_API_KEY;
   const baseURL =
     options.baseURL || process.env.VISION_INFERENCE_ENDPOINT || process.env.META_INFERENCE_ENDPOINT;
   const model =
     options.model || process.env.VISION_MODEL || 'meta-llama/Llama-3.2-90B-Vision-Instruct';
-  if (!apiKey) throw new Error('No API key found. Set MODEL_API_KEY.');
+  if (!apiKey) throw new Error('No API key found. Set META_API_KEY.');
   if (!baseURL) {
     throw new Error('No vision endpoint found. Set VISION_INFERENCE_ENDPOINT.');
   }

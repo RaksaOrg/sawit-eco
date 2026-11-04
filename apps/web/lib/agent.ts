@@ -5,8 +5,11 @@ import { queryMetaInferenceEngine } from '@/src/core/ai/inference';
 import { queryMetaVisionInference } from '@/src/core/ai/vision';
 import { isModelMockEnabled } from '@/src/core/ai/mock';
 import { logServerError } from './logger';
+import { getModelProvider, recordModelTrigger } from './model-trigger';
 
 export type AgentName = 'supervisor' | 'agronomy' | 'manager';
+
+type TriggerContext = { tenantId: string; traceId: string };
 
 export type TenantContext = {
   nama?: string | null;
@@ -42,8 +45,11 @@ async function runOpenAI(
   agent: AgentName,
   prompt: string,
   message: string,
-  image?: { mime: string; base64: string },
+  image: { mime: string; base64: string } | undefined,
+  trigger?: TriggerContext,
 ) {
+  const model = agent === 'supervisor' ? 'gpt-4o-mini' : 'gpt-4o';
+  const startedAt = Date.now();
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     {
@@ -58,25 +64,54 @@ async function runOpenAI(
     });
   }
 
-  const res = await openai.chat.completions.create({
-    model: agent === 'supervisor' ? 'gpt-4o-mini' : 'gpt-4o',
-    temperature: 0.3,
-    messages: [
-      { role: 'system', content: prompt },
-      { role: 'user', content: image ? content : message },
-    ],
-  });
-  return res.choices[0].message.content || '';
+  try {
+    const res = await openai.chat.completions.create({
+      model,
+      temperature: 0.3,
+      messages: [
+        { role: 'system', content: prompt },
+        { role: 'user', content: image ? content : message },
+      ],
+    });
+    if (trigger) {
+      await recordModelTrigger({
+        ...trigger,
+        route: '/api/whatsapp/webhook',
+        provider: 'openai',
+        model,
+        operation: image ? 'VISION_AGENT' : 'TEXT_AGENT',
+        status: 'SUCCEEDED',
+        startedAt,
+      });
+    }
+    return res.choices[0].message.content || '';
+  } catch (error) {
+    if (trigger) {
+      await recordModelTrigger({
+        ...trigger,
+        route: '/api/whatsapp/webhook',
+        provider: 'openai',
+        model,
+        operation: image ? 'VISION_AGENT' : 'TEXT_AGENT',
+        status: 'FAILED',
+        startedAt,
+        errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+      });
+    }
+    throw error;
+  }
 }
 
 export async function runAgent(
   message: string,
   tenant: TenantContext,
   image?: { mime: string; base64: string },
+  trigger?: TriggerContext,
 ) {
   const agent = pickAgent(message, Boolean(image));
 
   if (image) {
+    const startedAt = Date.now();
     try {
       const vision = await queryMetaVisionInference(
         {
@@ -86,7 +121,39 @@ export async function runAgent(
         },
         process.env,
         fetch,
+        async (error, model) => {
+          if (!trigger) return;
+          await recordModelTrigger({
+            ...trigger,
+            route: '/api/whatsapp/webhook',
+            provider: getModelProvider(
+              process.env.VISION_INFERENCE_ENDPOINT || process.env.META_INFERENCE_ENDPOINT,
+            ),
+            model,
+            operation: 'VISION_AGENT',
+            status: 'FAILED',
+            startedAt,
+            errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+          });
+        },
       );
+      if (trigger) {
+        await recordModelTrigger({
+          ...trigger,
+          route: '/api/whatsapp/webhook',
+          provider: vision.isMock
+            ? 'mock'
+            : vision.isFallback
+              ? 'rule-based-fallback'
+              : getModelProvider(
+                  process.env.VISION_INFERENCE_ENDPOINT || process.env.META_INFERENCE_ENDPOINT,
+                ),
+          model: vision.modelUsed,
+          operation: 'VISION_AGENT',
+          status: 'SUCCEEDED',
+          startedAt,
+        });
+      }
 
       const blockHint = tenant.blocks || 'A1, B2';
       const reply =
@@ -99,15 +166,29 @@ export async function runAgent(
 
       return { agent, reply };
     } catch (error) {
+      if (trigger) {
+        await recordModelTrigger({
+          ...trigger,
+          route: '/api/whatsapp/webhook',
+          provider: getModelProvider(
+            process.env.VISION_INFERENCE_ENDPOINT || process.env.META_INFERENCE_ENDPOINT,
+          ),
+          model: process.env.VISION_MODEL || process.env.META_MODEL || 'unknown',
+          operation: 'VISION_AGENT',
+          status: 'FAILED',
+          startedAt,
+          errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+        });
+      }
       logServerError('Meta vision gagal, fallback ke OpenAI', error);
     }
-    // Fallback to OpenAI if Meta Vision provider dies
     const prompt = getPrompt(agent, tenant);
-    return { agent, reply: await runOpenAI(agent, prompt, message, image) };
+    return { agent, reply: await runOpenAI(agent, prompt, message, image, trigger) };
   }
 
   const prompt = getPrompt(agent, tenant);
-  if (isModelMockEnabled() || (process.env.META_INFERENCE_ENDPOINT && process.env.MODEL_API_KEY)) {
+  if (isModelMockEnabled() || (process.env.META_INFERENCE_ENDPOINT && process.env.META_API_KEY)) {
+    const startedAt = Date.now();
     try {
       const result = await queryMetaInferenceEngine({
         messages: [
@@ -115,11 +196,36 @@ export async function runAgent(
           { role: 'user', content: message },
         ],
       });
+      if (trigger) {
+        await recordModelTrigger({
+          ...trigger,
+          route: '/api/whatsapp/webhook',
+          provider: result.model.startsWith('mock-')
+            ? 'mock'
+            : getModelProvider(process.env.META_INFERENCE_ENDPOINT, result.provider),
+          model: result.model,
+          operation: 'TEXT_AGENT',
+          status: 'SUCCEEDED',
+          startedAt,
+        });
+      }
       return { agent, reply: result.text };
     } catch (error) {
+      if (trigger) {
+        await recordModelTrigger({
+          ...trigger,
+          route: '/api/whatsapp/webhook',
+          provider: getModelProvider(process.env.META_INFERENCE_ENDPOINT),
+          model: process.env.META_MODEL || 'meta-llama/Llama-3.3-70B-Instruct',
+          operation: 'TEXT_AGENT',
+          status: 'FAILED',
+          startedAt,
+          errorCode: error instanceof Error ? error.name : 'UNKNOWN_ERROR',
+        });
+      }
       logServerError('Meta inference gagal, fallback ke OpenAI', error);
     }
   }
 
-  return { agent, reply: await runOpenAI(agent, prompt, message, image) };
+  return { agent, reply: await runOpenAI(agent, prompt, message, image, trigger) };
 }

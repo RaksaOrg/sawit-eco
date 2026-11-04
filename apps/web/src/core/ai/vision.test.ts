@@ -22,7 +22,7 @@ describe('Meta Vision Pipeline (Llama 3.2 90B Vision)', () => {
     expect(resolveVisionConfig({})).toBeNull();
     const config = resolveVisionConfig({
       VISION_INFERENCE_ENDPOINT: 'https://baseten.mock/v1/vision',
-      MODEL_API_KEY: 'sec-key-123',
+      META_API_KEY: 'sec-key-123',
     });
     expect(config?.endpoint).toBe('https://baseten.mock/v1/vision');
     expect(config?.model).toBe('meta-llama/Llama-3.2-90B-Vision-Instruct');
@@ -30,7 +30,7 @@ describe('Meta Vision Pipeline (Llama 3.2 90B Vision)', () => {
 
     const customConfig = resolveVisionConfig({
       META_INFERENCE_ENDPOINT: 'https://fallback.mock/v1',
-      MODEL_API_KEY: 'sec-123',
+      META_API_KEY: 'sec-123',
       VISION_MODEL: 'custom-vision-model',
       VISION_TIMEOUT_MS: '45000',
     });
@@ -146,7 +146,7 @@ describe('Meta Vision Pipeline (Llama 3.2 90B Vision)', () => {
     const failedFetch = jest.fn().mockRejectedValue(new Error('Network error'));
     const env = {
       VISION_INFERENCE_ENDPOINT: 'https://mock/v1',
-      MODEL_API_KEY: 'key',
+      META_API_KEY: 'key',
     };
     const res = await queryMetaVisionInference(
       dummyRequest,
@@ -209,8 +209,8 @@ describe('Meta Vision Pipeline (Llama 3.2 90B Vision)', () => {
   });
 });
 
-describe('MODEL_API_KEY guard for vision endpoint', () => {
-  it('skips the endpoint when MODEL_API_KEY is missing, empty, or undefined', async () => {
+describe('META_API_KEY guard for vision endpoint', () => {
+  it('skips the endpoint when META_API_KEY is missing, empty, or undefined', async () => {
     for (const key of [undefined, '']) {
       const fetchMock = jest.fn();
       await expect(
@@ -218,7 +218,7 @@ describe('MODEL_API_KEY guard for vision endpoint', () => {
           { image: { mime: 'image/jpeg', base64: 'abc' }, blockCode: 'B2' },
           {
             VISION_INFERENCE_ENDPOINT: 'https://api.meta.ai/v1/chat/completions',
-            MODEL_API_KEY: key,
+            META_API_KEY: key,
           },
           fetchMock as unknown as typeof fetch,
         ),

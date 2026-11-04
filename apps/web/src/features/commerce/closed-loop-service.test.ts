@@ -39,7 +39,10 @@ import {
   addToCartFromRecommendation,
   checkoutAndApproveOrder,
 } from './closed-loop-service';
-import { MANDATORY_AGRONOMY_DISCLAIMER } from '@/src/core/compliance/agronomy-guard';
+import {
+  MANDATORY_AGRONOMY_DISCLAIMER,
+  PRODUCT_GAP_SKU,
+} from '@/src/core/compliance/agronomy-guard';
 
 const product = {
   id: 'p1',
@@ -97,14 +100,24 @@ describe('closed loop service', () => {
       blockCode: 'B9',
       symptoms: 'bercak',
       photoUrl: 'https://x/y.jpg',
-      targetSku: 'UNKNOWN-SKU',
+      targetSku: PRODUCT_GAP_SKU,
       dosageKgPerHa: 100,
       disclaimer: MANDATORY_AGRONOMY_DISCLAIMER,
       reason: 'Butuh produk X',
     });
     expect(res.recommendation.status).toBe('PRODUCT_GAP');
     expect(res.gapId).toBe('gap1');
-    expect(productGapCreate).toHaveBeenCalled();
+    expect(productGapCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        tenantId: 't1',
+        agronomyLogId: 'log1',
+        targetSku: PRODUCT_GAP_SKU,
+        status: 'OPEN',
+      }),
+    });
+    expect(ledgerCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ stage: 'PRODUCT_GAP' }),
+    });
   });
 
   it('reject missing disclaimer before DB write', async () => {

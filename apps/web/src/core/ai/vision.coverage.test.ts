@@ -23,7 +23,7 @@ describe('vision defaults coverage', () => {
     }) as unknown as typeof fetch;
 
     process.env.META_INFERENCE_ENDPOINT = 'https://x';
-    process.env.MODEL_API_KEY = 'k';
+    process.env.META_API_KEY = 'k';
 
     const config = resolveVisionConfig();
     expect(config?.endpoint).toBe('https://x');
@@ -37,7 +37,7 @@ describe('vision defaults coverage', () => {
 
     global.fetch = original;
     delete process.env.META_INFERENCE_ENDPOINT;
-    delete process.env.MODEL_API_KEY;
+    delete process.env.META_API_KEY;
   });
 
   it('covers remaining branch paths in vision module', async () => {
@@ -49,7 +49,7 @@ describe('vision defaults coverage', () => {
     // 1. Line 69 default fetch
     const config = resolveVisionConfig({
       VISION_INFERENCE_ENDPOINT: 'https://x',
-      MODEL_API_KEY: 'k',
+      META_API_KEY: 'k',
     });
     expect(config).not.toBeNull();
     if (config) {

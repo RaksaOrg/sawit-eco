@@ -18,7 +18,7 @@ export function resolveLivenessConfig(
 ): LivenessConfig | null {
   const endpoint =
     env.VISION_INFERENCE_ENDPOINT?.trim() || env.META_INFERENCE_ENDPOINT?.trim() || '';
-  const apiKey = env.MODEL_API_KEY?.trim() || '';
+  const apiKey = env.META_API_KEY?.trim() || '';
   if (!endpoint || !apiKey) return null;
   const timeoutValue = Number(env.VISION_TIMEOUT_MS || env.META_INFERENCE_TIMEOUT_MS);
   return {
