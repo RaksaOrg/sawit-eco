@@ -13,6 +13,7 @@ yarn-error.log*
 .env.local
 .env*.local
 .vercel
+.opencode/references/images
 apps/web/.env
 apps/web/.env.development
 apps/web/.env.production
