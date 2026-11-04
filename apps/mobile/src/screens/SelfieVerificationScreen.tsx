@@ -4,6 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 import { createFaceDetectorOutput, type Face } from 'react-native-vision-camera-face-detector';
 import { Ionicons } from '@expo/vector-icons';
+import { createTranslator, type TranslationKey } from '../i18n';
+import { useMobileAppStore } from '../state/store';
+
+const STEP_COUNTS: TranslationKey[] = ['selfie.step_count1', 'selfie.step_count2', 'selfie.step_count3'];
+const STEPS: [TranslationKey, TranslationKey][] = [
+  ['selfie.step1_title', 'selfie.step1_description'],
+  ['selfie.step2_title', 'selfie.step2_description'],
+  ['selfie.step3_title', 'selfie.step3_description'],
+];
 
 const COLORS = {
   navy: '#102957',
@@ -12,18 +21,14 @@ const COLORS = {
   muted: '#5A6B8E',
   white: '#FFFFFF',
 };
-const STEPS = [
-  ['Gerakkan kepala ke kanan', 'Ikuti instruksi untuk melanjutkan verifikasi.'],
-  ['Gerakkan kepala ke kiri', 'Putar kepala perlahan ke arah kiri.'],
-  ['Kedipkan mata', 'Kedipkan mata untuk menyelesaikan verifikasi.'],
-] as const;
-
 type Props = {
   navigation?: { goBack: () => void; navigate?: (screen: string, params?: unknown) => void };
   route?: { params?: { source?: string } };
 };
 
 export function SelfieVerificationScreen({ navigation, route }: Props) {
+  const language = useMobileAppStore((state) => state.language);
+  const t = createTranslator(language);
   const device = useCameraDevice('front');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [step, setStep] = useState(0);
@@ -40,10 +45,10 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     requestPermission()
       .then((granted) => {
         if (!granted)
-          setCameraError('Izin kamera ditolak. Aktifkan izin kamera di pengaturan perangkat.');
+          setCameraError(t('selfie.permission_denied'));
       })
       .catch(() =>
-        setCameraError('Izin kamera tidak dapat diminta. Periksa pengaturan perangkat.'),
+        setCameraError(t('selfie.permission_error')),
       );
   }, [hasPermission, permissionRequested, requestPermission]);
   const faceDetectorOutput = useMemo(() => createFaceDetectorOutput({
@@ -52,14 +57,14 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     runLandmarks: true,
     mirrorMode: 'on',
     onFacesDetected: (faces) => faceHandler.current(faces),
-    onError: () => setCameraError('Face detection gagal menerima frame dari kamera.'),
+    onError: () => setCameraError(t('selfie.detector_error')),
   }), []);
 
   const start = () => {
     if (!cameraActive) {
       Alert.alert(
-        'Kamera belum siap',
-        cameraError || 'Tunggu izin kamera dan preview siap sebelum melanjutkan.',
+        t('selfie.not_ready_title'),
+        cameraError || t('selfie.not_ready_message'),
       );
       return;
     }
@@ -107,13 +112,13 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             <View style={styles.logo}>
               <Ionicons name="leaf" size={31} color="#0BA65B" />
             </View>
-            <Text style={styles.brandText}>Sawit{`\n`}Ecosystem</Text>
+            <Text style={styles.brandText}>{t('selfie.brand1')}{`\n`}{t('selfie.brand2')}</Text>
           </View>
           <View style={styles.headerActions}>
             <View style={styles.notification}>
               <Ionicons name="notifications-outline" size={25} color={COLORS.navy} />
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>3</Text>
+                <Text style={styles.badgeText}>{t('selfie.notification_count')}</Text>
               </View>
             </View>
             <View style={styles.avatar}>
@@ -125,10 +130,10 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           <Pressable onPress={() => navigation?.goBack()} hitSlop={10}>
             <Ionicons name="arrow-back" size={27} color={COLORS.navy} />
           </Pressable>
-          <Text style={styles.title}>Verifikasi Identitas</Text>
+          <Text style={styles.title}>{t('selfie.title')}</Text>
         </View>
         <Text style={styles.subtitle}>
-          Lakukan verifikasi selfie untuk menyimpan perubahan akun Anda.
+          {t('selfie.subtitle')}
         </Text>
 
         <View style={styles.card}>
@@ -137,9 +142,9 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
               <Ionicons name="shield-checkmark" size={30} color="#0C9F68" />
             </View>
             <View style={styles.sectionText}>
-              <Text style={styles.sectionTitle}>Verifikasi Selfie (Liveness)</Text>
+              <Text style={styles.sectionTitle}>{t('selfie.section_title')}</Text>
               <Text style={styles.sectionDescription}>
-                Pastikan wajah Anda terlihat jelas dan ikuti instruksi di layar.
+                {t('selfie.section_description')}
               </Text>
             </View>
           </View>
@@ -156,7 +161,7 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
                   setCameraError('');
                 }}
                 onPreviewStopped={() => setPreviewReady(false)}
-                onError={(error) => setCameraError(error.message || 'Kamera gagal dimulai.')}
+                onError={() => setCameraError(t('selfie.camera_error'))}
                 pointerEvents="auto"
                 onLayout={() => undefined}
                 nativeID="selfie-camera"
@@ -166,8 +171,8 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
                 <Ionicons name="camera-outline" size={44} color="#8996B1" />
                 <Text style={styles.placeholderText}>
                   {device
-                    ? 'Izinkan akses kamera untuk menampilkan wajah'
-                    : 'Kamera depan tidak terdeteksi pada perangkat ini'}
+                    ? t('selfie.allow_camera')
+                    : t('selfie.no_camera')}
                 </Text>
               </View>
             )}
@@ -180,22 +185,22 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
               <View style={styles.activeDot} />
               <Text style={styles.statusText}>
                 {cameraError
-                  ? 'Kamera bermasalah'
+                  ? t('selfie.status_problem')
                   : !cameraActive
                     ? device
-                      ? 'Izin kamera belum diberikan'
-                      : 'Kamera depan tidak tersedia'
+                      ? t('selfie.status_permission')
+                      : t('selfie.status_unavailable')
                     : previewReady
-                      ? 'Kamera aktif'
-                      : 'Menghubungkan kamera...'}
+                      ? t('selfie.status_active')
+                      : t('selfie.status_connecting')}
               </Text>
             </View>
           </View>
           {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
           <View style={styles.instructions}>
-            <Instruction icon="camera-outline" text="Posisikan wajah di dalam lingkaran" />
-            <Instruction icon="sunny-outline" text="Pastikan pencahayaan cukup" />
-            <Instruction icon="glasses-outline" text="Lepaskan masker dan kacamata hitam" />
+            <Instruction icon="camera-outline" text={t('selfie.position_face')} />
+            <Instruction icon="sunny-outline" text={t('selfie.lighting')} />
+            <Instruction icon="glasses-outline" text={t('selfie.remove_accessories')} />
           </View>
           <View style={styles.stepCard}>
             <View style={styles.stepIllustration}>
@@ -209,11 +214,11 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             </View>
             <View style={styles.divider} />
             <View style={styles.stepContent}>
-              <Text style={styles.stepTitle}>{STEPS[step][0]}</Text>
-              <Text style={styles.stepDescription}>{STEPS[step][1]}</Text>
+              <Text style={styles.stepTitle}>{t(STEPS[step][0])}</Text>
+              <Text style={styles.stepDescription}>{t(STEPS[step][1])}</Text>
             </View>
             <View style={styles.progress}>
-              <Text style={styles.counter}>Langkah {step + 1} dari 3</Text>
+              <Text style={styles.counter}>{t(STEP_COUNTS[step])}</Text>
               <View style={styles.dots}>
                 {STEPS.map((_, index) => (
                   <View key={index} style={[styles.dot, index === step && styles.dotActive]} />
@@ -224,21 +229,21 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           <Pressable onPress={started ? next : start} style={styles.primaryButton}>
             <Ionicons name="scan-outline" size={25} color={COLORS.white} />
             <Text style={styles.primaryText}>
-              {started ? 'Lanjutkan Verifikasi' : 'Mulai Verifikasi'}
+              {started ? t('selfie.continue') : t('selfie.start')}
             </Text>
           </Pressable>
           <Pressable
             style={styles.secondaryButton}
             onPress={() =>
-              Alert.alert('Verifikasi Nanti', 'Anda dapat melakukan verifikasi di lain waktu.')
+              Alert.alert(t('selfie.later_title'), t('selfie.later_message'))
             }
           >
-            <Text style={styles.secondaryText}>Verifikasi Nanti</Text>
+            <Text style={styles.secondaryText}>{t('selfie.later')}</Text>
           </Pressable>
           <View style={styles.security}>
             <Ionicons name="lock-closed-outline" size={19} color="#6B7B9D" />
             <Text style={styles.securityText}>
-              Data selfie dienkripsi dan digunakan hanya untuk verifikasi identitas.
+              {t('selfie.security')}
             </Text>
           </View>
         </View>
