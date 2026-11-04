@@ -23,13 +23,14 @@ export async function POST(req: NextRequest) {
 
     const defaultUser = await prisma.user.findFirst({
       where: { tenantId },
-      select: { id: true },
+      select: { id: true, nama: true },
     });
 
     const body = await req.json();
     const result = await processDiagnosisFlow({
       tenantId,
       userId: body.userId || defaultUser?.id || 'system-user',
+      mandorNama: body.mandorNama || defaultUser?.nama || 'AI Agronomist',
       blockCode: body.blockCode,
       symptoms: body.symptoms,
       photoUrl: body.photoUrl,

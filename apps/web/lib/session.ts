@@ -1,4 +1,3 @@
-
 import crypto from 'crypto';
 
 export const SESSION_COOKIE = 'sp_session';
@@ -35,17 +34,10 @@ function secret() {
 }
 
 function sign(payload: string) {
-  return crypto
-    .createHmac('sha256', secret())
-    .update(payload)
-    .digest('base64url');
+  return crypto.createHmac('sha256', secret()).update(payload).digest('base64url');
 }
 
-export function createSession(input: {
-  userId: string;
-  tenantId: string;
-  role: SessionRole;
-}) {
+export function createSession(input: { userId: string; tenantId: string; role: SessionRole }) {
   const now = Math.floor(Date.now() / 1000);
 
   const payload: SessionPayload = {
@@ -55,16 +47,12 @@ export function createSession(input: {
     v: 1,
   };
 
-  const encoded = Buffer
-    .from(JSON.stringify(payload))
-    .toString('base64url');
+  const encoded = Buffer.from(JSON.stringify(payload)).toString('base64url');
 
   return `${encoded}.${sign(encoded)}`;
 }
 
-export function readSession(
-  value: string | undefined
-): SessionPayload | null {
+export function readSession(value: string | undefined): SessionPayload | null {
   if (!value || value.length > 4096) return null;
 
   const idx = value.lastIndexOf('.');
@@ -83,16 +71,13 @@ export function readSession(
     return null;
   }
 
-  if (
-    actual.length !== expected.length ||
-    !crypto.timingSafeEqual(actual, expected)
-  ) {
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
     return null;
   }
 
   try {
     const payload = JSON.parse(
-      Buffer.from(encoded, 'base64url').toString('utf8')
+      Buffer.from(encoded, 'base64url').toString('utf8'),
     ) as Partial<SessionPayload>;
 
     if (
@@ -132,10 +117,7 @@ export function hashPassword(password: string) {
   return `${salt}:${hash}`;
 }
 
-export function verifyPassword(
-  password: string,
-  stored: string | null
-) {
+export function verifyPassword(password: string, stored: string | null) {
   if (!stored || typeof password !== 'string') return false;
 
   try {
@@ -145,10 +127,7 @@ export function verifyPassword(
 
     const [salt, hash] = parts;
 
-    if (
-      !/^[a-f0-9]{32}$/i.test(salt) ||
-      !/^[a-f0-9]{128}$/i.test(hash)
-    ) {
+    if (!/^[a-f0-9]{32}$/i.test(salt) || !/^[a-f0-9]{128}$/i.test(hash)) {
       return false;
     }
 

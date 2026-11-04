@@ -72,6 +72,8 @@ describe('closed loop service', () => {
     expect(res.logId).toBe('log1');
     expect(res.recommendation.status).toBe('RECOMMENDED');
     expect(res.recommendation.estimation?.jumlahSak).toBe(75);
+    expect(res.recommendation.card?.sku).toBe('FERT-MOP-50');
+    expect(res.recommendation.card?.kuantitas).toBe(75);
     expect(res.gapId).toBeUndefined();
     expect(productGapCreate).not.toHaveBeenCalled();
     expect(ledgerCreate).toHaveBeenCalledWith(

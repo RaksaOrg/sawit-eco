@@ -1,20 +1,14 @@
-
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from './prisma';
-import {
-  SESSION_COOKIE,
-  readSession,
-} from './session';
+import { SESSION_COOKIE, readSession } from './session';
 
 export * from './session';
 
 export async function getSession() {
   const cookieStore = await cookies();
 
-  return readSession(
-    cookieStore.get(SESSION_COOKIE)?.value
-  );
+  return readSession(cookieStore.get(SESSION_COOKIE)?.value);
 }
 
 export async function getSessionTenantId(): Promise<string | null> {
@@ -65,10 +59,7 @@ export async function requireAuth(req?: Request) {
   return auth;
 }
 
-export async function requireRole(
-  allowedRoles: Array<'OWNER' | 'MANDOR'>,
-  req?: Request
-) {
+export async function requireRole(allowedRoles: Array<'OWNER' | 'MANDOR'>, req?: Request) {
   const auth = await requireAuth(req);
 
   if (!allowedRoles.includes(auth.role)) {

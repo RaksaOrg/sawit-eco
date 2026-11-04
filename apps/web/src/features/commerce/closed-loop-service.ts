@@ -9,6 +9,7 @@ import {
 export interface DiagnoseRequest {
   tenantId: string;
   userId: string;
+  mandorNama?: string;
   blockCode: string;
   symptoms: string;
   photoUrl?: string;
@@ -20,7 +21,17 @@ export interface DiagnoseRequest {
 
 export interface DiagnoseResult {
   logId: string;
-  recommendation: AgronomyRecommendationOutput;
+  recommendation: AgronomyRecommendationOutput & {
+    card?: {
+      sku: string;
+      nama: string;
+      alasan: string;
+      kuantitas: number;
+      satuan: string;
+      estimasiTotalHarga: number;
+      disclaimer: string;
+    };
+  };
   gapId?: string;
 }
 
@@ -67,6 +78,7 @@ export async function processDiagnosisFlow(input: DiagnoseRequest): Promise<Diag
       diagnosa: `Diagnosa gejala: ${input.symptoms}`,
       risiko: 'TINGGI',
       rekomendasi: `${input.reason} | ${MANDATORY_AGRONOMY_DISCLAIMER}`,
+      mandorNama: input.mandorNama || 'AI Agronomist',
     },
   });
 
@@ -97,9 +109,25 @@ export async function processDiagnosisFlow(input: DiagnoseRequest): Promise<Diag
     },
   });
 
+  const card =
+    recommendation.status === 'RECOMMENDED' && recommendation.product && recommendation.estimation
+      ? {
+          sku: recommendation.product.sku,
+          nama: recommendation.product.nama,
+          alasan: input.reason,
+          kuantitas: recommendation.estimation.jumlahSak,
+          satuan: recommendation.product.satuan,
+          estimasiTotalHarga: recommendation.estimation.jumlahSak * recommendation.product.harga,
+          disclaimer: recommendation.disclaimer,
+        }
+      : undefined;
+
   return {
     logId: agroLog.id,
-    recommendation,
+    recommendation: {
+      ...recommendation,
+      card,
+    },
     gapId,
   };
 }
