@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
@@ -28,7 +28,18 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
   const { hasPermission, requestPermission } = useCameraPermission();
   const [step, setStep] = useState(0);
   const [started, setStarted] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const [previewReady, setPreviewReady] = useState(false);
+  const [permissionRequested, setPermissionRequested] = useState(false);
   const cameraActive = hasPermission && !!device;
+
+  useEffect(() => {
+    if (hasPermission || permissionRequested) return;
+    setPermissionRequested(true);
+    requestPermission().then((granted) => {
+      if (!granted) setCameraError('Izin kamera ditolak. Aktifkan izin kamera di pengaturan perangkat.');
+    }).catch(() => setCameraError('Izin kamera tidak dapat diminta. Periksa pengaturan perangkat.'));
+  }, [hasPermission, permissionRequested, requestPermission]);
   const faceDetectorOutput = useFaceDetectorOutput({
     performanceMode: 'fast',
     runClassifications: true,
@@ -38,16 +49,10 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
     onError: () => Alert.alert('Kamera error', 'Face detection tidak dapat dijalankan.'),
   });
 
-  const start = async () => {
+  const start = () => {
     if (!cameraActive) {
-      const granted = await requestPermission();
-      if (!granted) {
-        Alert.alert(
-          'Izin kamera diperlukan',
-          'Aktifkan izin kamera untuk melakukan verifikasi selfie.',
-        );
-        return;
-      }
+      Alert.alert('Kamera belum siap', cameraError || 'Tunggu izin kamera dan preview siap sebelum melanjutkan.');
+      return;
     }
     setStarted(true);
     setStep(0);
@@ -118,12 +123,12 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
           </View>
           <View style={styles.cameraContainer}>
             {cameraActive ? (
-              <Camera style={StyleSheet.absoluteFillObject} device={device!} isActive={started} outputs={[faceDetectorOutput]} pointerEvents="auto" onLayout={() => undefined} nativeID="selfie-camera" />
+              <Camera style={styles.cameraPreview} device={device!} isActive={cameraActive} implementationMode="compatible" outputs={[faceDetectorOutput]} onPreviewStarted={() => { setPreviewReady(true); setCameraError(''); }} onPreviewStopped={() => setPreviewReady(false)} onError={(error) => setCameraError(error.message || 'Kamera gagal dimulai.')} pointerEvents="auto" onLayout={() => undefined} nativeID="selfie-camera" />
             ) : (
               <View style={styles.placeholder}>
                 <Ionicons name="camera-outline" size={44} color="#8996B1" />
                 <Text style={styles.placeholderText}>
-                  Izinkan akses kamera untuk menampilkan wajah
+                  {device ? 'Izinkan akses kamera untuk menampilkan wajah' : 'Kamera depan tidak terdeteksi pada perangkat ini'}
                 </Text>
               </View>
             )}
@@ -135,10 +140,11 @@ export function SelfieVerificationScreen({ navigation, route }: Props) {
             <View style={styles.cameraStatus}>
               <View style={styles.activeDot} />
               <Text style={styles.statusText}>
-                {cameraActive ? 'Kamera aktif' : 'Kamera belum aktif'}
+                {cameraError ? 'Kamera bermasalah' : !cameraActive ? device ? 'Izin kamera belum diberikan' : 'Kamera depan tidak tersedia' : previewReady ? 'Kamera aktif' : 'Menghubungkan kamera...'}
               </Text>
             </View>
           </View>
+          {cameraError ? <Text style={styles.cameraError}>{cameraError}</Text> : null}
           <View style={styles.instructions}>
             <Instruction icon="camera-outline" text="Posisikan wajah di dalam lingkaran" />
             <Instruction icon="sunny-outline" text="Pastikan pencahayaan cukup" />
@@ -289,6 +295,7 @@ const styles = StyleSheet.create({
   sectionText: { flex: 1 },
   sectionTitle: { fontSize: 18, fontWeight: '800', color: COLORS.navy },
   sectionDescription: { fontSize: 13, lineHeight: 19, color: COLORS.navy, marginTop: 3 },
+  cameraPreview: { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 },
   cameraContainer: {
     height: 265,
     backgroundColor: '#D8DCE3',
@@ -343,6 +350,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
     borderBottomRightRadius: 9,
   },
+  cameraError: { color: '#B42318', fontSize: 12, marginTop: 8, textAlign: 'center' },
   instructions: { marginTop: 18, marginBottom: 18, gap: 9, paddingHorizontal: 8 },
   instruction: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   instructionIcon: {
