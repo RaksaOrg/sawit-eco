@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Image,
+  ActivityIndicator,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -42,6 +43,22 @@ type CheckoutResponse = {
   };
 };
 
+type CartResponse = {
+  id?: string;
+  items?: any[];
+  cart?: any[];
+  item?: any;
+  total?: number;
+  count?: number;
+};
+
+type AddedProduct = {
+  name: string;
+  sku: string;
+  price: number;
+  quantity: number;
+};
+
 export function CommerceScreen({
   navigation,
 }: {
@@ -52,12 +69,9 @@ export function CommerceScreen({
   const language = useMobileAppStore((s) => s.language);
   const session = useMobileAppStore((s) => s.session);
   const cart = useMobileAppStore((s) => s.cart);
-
   const addToCart = useMobileAppStore((s) => s.addToCart);
   const clearCart = useMobileAppStore((s) => s.clearCart);
-  const removeFromCart = useMobileAppStore(
-    (s) => s.removeFromCart,
-  );
+  const removeFromCart = useMobileAppStore((s) => s.removeFromCart);
 
   const t = createTranslator(language);
 
@@ -69,26 +83,231 @@ export function CommerceScreen({
 
   const [acknowledged, setAcknowledged] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [orderNotice, setOrderNotice] = useState<OrderNotice | null>(
-    null,
-  );
+  const [loadingProductId, setLoadingProductId] = useState<string | null>(null);
+  const [orderNotice, setOrderNotice] = useState<OrderNotice | null>(null);
 
-  const totalCart = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+  const [addedProduct, setAddedProduct] = useState<AddedProduct | null>(null);
+  const [showCartSuccess, setShowCartSuccess] = useState(false);
+
+  const money = (value: number) =>
+    `Rp ${(Number(value) || 0).toLocaleString('id-ID')}`;
+
+  // FETCH CART
+  useEffect(() => {
+    if (session?.userId) {
+      fetchCartFromBackend();
+    }
+  }, [session?.userId]);
+
+  const fetchCartFromBackend = async () => {
+    try {
+      const response = await apiRequest<CartResponse>(
+        '/api/commerce/cart',
+      );
+
+      const backendCart = Array.isArray(response?.items)
+        ? response.items
+        : Array.isArray(response?.cart)
+          ? response.cart
+          : [];
+
+      const normalizedCart: CartItem[] = backendCart
+        .map((item: any) => ({
+          productId: item.productId ?? item.id,
+          name: item.productName ?? item.name ?? '',
+          sku: item.sku ?? '',
+          price: Number(item.harga ?? item.price ?? 0),
+          quantity: Number(item.kuantitas ?? item.quantity ?? 1),
+          blockCode: item.blokKode ?? item.blockCode ?? 'B2',
+          recommendationId: item.recommendationId,
+          reason:
+            item.alasanRekomendasi ??
+            item.recommendationReason ??
+            item.reason,
+        }))
+        .filter(
+          (item: CartItem) =>
+            typeof item.productId === 'string' &&
+            item.productId.length > 0,
+        );
+
+      clearCart();
+
+      normalizedCart.forEach((item) => addToCart(item));
+    } catch (err) {
+      console.error('[CART] Failed to fetch:', err);
+    }
+  };
+
+  // CART TOTAL
+  const totalCart = (cart ?? []).reduce(
+    (sum, item) =>
+      sum +
+      (Number(item?.price) || 0) *
+        (Number(item?.quantity) || 0),
     0,
   );
 
-  const totalCartCount = cart.reduce(
-    (sum, item) => sum + item.quantity,
+  const totalCartCount = (cart ?? []).reduce(
+    (sum, item) => sum + (Number(item?.quantity) || 0),
     0,
   );
 
-  // Reset acknowledgment when cart becomes empty.
   useEffect(() => {
     if (cart.length === 0) {
       setAcknowledged(false);
     }
   }, [cart.length]);
+
+  // CART SUCCESS
+  const showSuccess = (product: AddedProduct) => {
+    setAddedProduct(product);
+    setShowCartSuccess(true);
+  };
+
+  const closeSuccess = () => {
+    setShowCartSuccess(false);
+    setAddedProduct(null);
+  };
+
+  // ADD PRODUCT TO CART
+  const handleAddToCart = async (
+    product: CatalogProduct,
+    quantity = 1,
+    reason?: string,
+  ) => {
+    if (
+      product.stok <= 0 ||
+      !session?.userId ||
+      loadingProductId ||
+      isSubmitting
+    ) {
+      return;
+    }
+
+    setLoadingProductId(product.id);
+    setOrderNotice(null);
+
+    try {
+      const response = await apiRequest<CartResponse>(
+        '/api/commerce/cart',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            productId: product.id,
+            quantity,
+            blockCode: 'B2',
+            recommendationId: null,
+            recommendationReason: reason ?? null,
+          }),
+        },
+      );
+
+      // Backend response may contain the updated cart item.
+      // Use its quantity when available to avoid local mismatch.
+      const backendItem = response?.item;
+
+      const updatedQuantity = Number(
+        backendItem?.quantity ??
+        backendItem?.kuantitas ??
+        quantity,
+      );
+
+      const finalQuantity =
+        Number.isFinite(updatedQuantity) && updatedQuantity > 0
+          ? updatedQuantity
+          : quantity;
+
+      // Zustand addToCart is assumed to merge by productId.
+      // If backend provides total quantity, add only the difference.
+      const existingItem = cart.find(
+        (item) => item.productId === product.id,
+      );
+
+      const currentQuantity = Number(existingItem?.quantity) || 0;
+      const quantityToAdd = Math.max(
+        0,
+        finalQuantity - currentQuantity,
+      );
+
+      if (quantityToAdd > 0) {
+        addToCart({
+          productId: product.id,
+          name: product.nama ?? '',
+          sku: product.sku ?? '',
+          price: product.harga ?? 0,
+          quantity: quantityToAdd,
+          blockCode: 'B2',
+          reason,
+        });
+      } else if (!existingItem) {
+        addToCart({
+          productId: product.id,
+          name: product.nama ?? '',
+          sku: product.sku ?? '',
+          price: product.harga ?? 0,
+          quantity,
+          blockCode: 'B2',
+          reason,
+        });
+      }
+
+      showSuccess({
+        name: product.nama ?? '',
+        sku: product.sku ?? '',
+        price: Number(product.harga) || 0,
+        quantity,
+      });
+    } catch (err) {
+      console.error('[CART] Add failed:', err);
+
+      setOrderNotice({
+        type: 'error',
+        message: t('cart.add_failed'),
+      });
+    } finally {
+      setLoadingProductId(null);
+    }
+  };
+
+  // AGRONOMY RECOMMENDATION
+  const handleAddRecommendation = async () => {
+    const product =
+      products?.find((item) => item.sku === 'FERT-KCL-25') ??
+      products?.[0];
+
+    if (!product || product.stok <= 0) {
+      return;
+    }
+
+    await handleAddToCart(
+      product,
+      12,
+      'Defisiensi Kalium Blok B2 (FERT-KCL-25)',
+    );
+  };
+
+  // REMOVE CART ITEM
+  const handleRemoveFromCart = async (productId: string) => {
+    if (isSubmitting || loadingProductId) return;
+
+    try {
+      await apiRequest('/api/commerce/cart', {
+        method: 'DELETE',
+        body: JSON.stringify({ itemId: productId }),
+      });
+
+      removeFromCart(productId);
+      setOrderNotice(null);
+    } catch (err) {
+      console.error('[CART] Remove failed:', err);
+
+      setOrderNotice({
+        type: 'error',
+        message: t('cart.remove_failed'),
+      });
+    }
+  };
 
   // CHECKOUT
   const handleCheckout = async () => {
@@ -96,7 +315,8 @@ export function CommerceScreen({
       !session?.userId ||
       cart.length === 0 ||
       !acknowledged ||
-      isSubmitting
+      isSubmitting ||
+      loadingProductId
     ) {
       return;
     }
@@ -112,7 +332,7 @@ export function CommerceScreen({
     ].join('-');
 
     try {
-      const response = await apiRequest(
+      const response = (await apiRequest(
         '/api/commerce/orders',
         {
           method: 'POST',
@@ -130,7 +350,7 @@ export function CommerceScreen({
             })),
           }),
         },
-      ) as CheckoutResponse;
+      )) as CheckoutResponse;
 
       const order = response?.order;
 
@@ -145,87 +365,41 @@ export function CommerceScreen({
         status: order?.status,
       });
     } catch (err) {
-      let errorMessage: string = t('commerce.order_failed');
+      const errorCode =
+        err instanceof Error ? err.message : '';
 
-      if (err instanceof Error) {
-        const errorCode = err.message;
-
-        const errorMessages: Record<string, string> = {
-          OUT_OF_STOCK:
-            'Stok tidak mencukupi. Silakan pilih produk lain.',
-          PRICE_CHANGED:
-            'Harga produk telah berubah. Silakan refresh katalog.',
-          INVALID_PRODUCT:
-            'Produk yang dipilih tidak valid.',
-          UNAUTHORIZED:
-            'Sesi kamu telah berakhir. Silakan login kembali.',
-          ORDER_ALREADY_EXISTS:
-            'Pesanan sudah pernah diproses. Silakan periksa riwayat pesanan.',
-          STOCK_VALIDATION_FAILED:
-            'Validasi stok gagal. Silakan hubungi admin.',
-        };
-
-        errorMessage = errorMessages[errorCode] ?? errorMessage;
-      }
+      const errorMessages: Record<string, string> = {
+        OUT_OF_STOCK:
+          'Stok tidak mencukupi. Silakan pilih produk lain.',
+        PRICE_CHANGED:
+          'Harga produk telah berubah. Silakan refresh katalog.',
+        INVALID_PRODUCT:
+          'Produk yang dipilih tidak valid.',
+        UNAUTHORIZED:
+          'Sesi kamu telah berakhir. Silakan login kembali.',
+        ORDER_ALREADY_EXISTS:
+          'Pesanan sudah pernah diproses. Silakan periksa riwayat pesanan.',
+        STOCK_VALIDATION_FAILED:
+          'Validasi stok gagal. Silakan hubungi admin.',
+      };
 
       setOrderNotice({
         type: 'error',
-        message: errorMessage,
+        message:
+          errorMessages[errorCode] ??
+          t('commerce.order_failed'),
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // REMOVE CART ITEM
-  const handleRemoveFromCart = (productId: string) => {
-    if (isSubmitting) return;
-
-    removeFromCart(productId);
-    setOrderNotice(null);
-  };
-
-  // ADD PRODUCT TO CART
-  const handleAddToCart = (product: CatalogProduct) => {
-    if (product.stok <= 0) return;
-
-    setOrderNotice(null);
-
-    addToCart({
-      productId: product.id,
-      name: product.nama,
-      sku: product.sku,
-      price: product.harga,
-      quantity: 1,
-      blockCode: 'B2',
-    });
-  };
-
-  // ADD AGRONOMY RECOMMENDATION
-  const handleAddRecommendation = () => {
-    const product =
-      products?.find((item) => item.sku === 'FERT-KCL-25') ??
-      products?.[0];
-
-    if (!product || product.stok <= 0) return;
-
-    setOrderNotice(null);
-
-    addToCart({
-      productId: product.id,
-      name: product.nama,
-      sku: product.sku,
-      price: product.harga,
-      quantity: 12,
-      blockCode: 'B2',
-      reason: 'Defisiensi Kalium Blok B2',
-    });
-  };
-
   return (
-    <AppScreen 
-      showTopHeader 
-      onTopHeaderAvatarPress={() => navigation?.navigate('Profile')}
+    <AppScreen
+      showTopHeader
+      onTopHeaderAvatarPress={() =>
+        navigation?.navigate('Profile')
+      }
       topHeaderRight={
         <View style={styles.cartBtnWrapper}>
           <Pressable
@@ -234,9 +408,6 @@ export function CommerceScreen({
             onPress={() => navigation?.navigate('Cart')}
             accessibilityRole="button"
             accessibilityLabel="Shopping cart"
-            accessibilityState={{
-              selected: cart.length > 0,
-            }}
           >
             <Ionicons
               name="cart-outline"
@@ -255,6 +426,121 @@ export function CommerceScreen({
         </View>
       }
     >
+      {/* ADD TO CART SUCCESS MODAL */}
+      <Modal
+        visible={showCartSuccess}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeSuccess}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeSuccess}
+          />
+
+          <View style={styles.successSheet}>
+            <View style={styles.sheetHandle} />
+
+            <View style={styles.successIcon}>
+              <Ionicons
+                name="checkmark"
+                size={32}
+                color="#FFFFFF"
+              />
+            </View>
+
+            <Text style={styles.successTitle}>
+              Berhasil ditambahkan!
+            </Text>
+
+            <Text style={styles.successSubtitle}>
+              Produk sudah masuk ke keranjang belanja kamu.
+            </Text>
+
+            {addedProduct && (
+              <View style={styles.addedProductCard}>
+                <View style={styles.addedProductIcon}>
+                  <Ionicons
+                    name="cube-outline"
+                    size={28}
+                    color={semanticTokens.color.brand}
+                  />
+                </View>
+
+                <View style={styles.addedProductInfo}>
+                  <Text
+                    style={styles.addedProductName}
+                    numberOfLines={2}
+                  >
+                    {addedProduct.name}
+                  </Text>
+
+                  <Text style={styles.addedProductSku}>
+                    {addedProduct.sku}
+                  </Text>
+
+                  <Text style={styles.addedProductQuantity}>
+                    {addedProduct.quantity} item
+                  </Text>
+                </View>
+
+                <Text style={styles.addedProductPrice}>
+                  {money(
+                    addedProduct.price *
+                      addedProduct.quantity,
+                  )}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.successCartSummary}>
+              <View>
+                <Text style={styles.summaryLabel}>
+                  Total item di keranjang
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {totalCartCount} item
+                </Text>
+              </View>
+
+              <View style={{ alignItems: 'flex-end' }}>
+                <Text style={styles.summaryLabel}>
+                  Total belanja
+                </Text>
+
+                <Text style={styles.summaryValue}>
+                  {money(totalCart)}
+                </Text>
+              </View>
+            </View>
+
+            <AppButton
+              label="Lihat Keranjang"
+              variant="primary"
+              onPress={() => {
+                closeSuccess();
+                navigation?.navigate('Cart');
+              }}
+              fullWidth
+              height={48}
+              radius={tTokens.radius.md}
+            />
+
+            <Pressable
+              style={styles.continueButton}
+              onPress={closeSuccess}
+            >
+              <Text style={styles.continueButtonText}>
+                Lanjut Belanja
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       {/* TITLE */}
       <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>
@@ -266,7 +552,7 @@ export function CommerceScreen({
         </Text>
       </View>
 
-      {/* ORDER SUCCESS / ERROR */}
+      {/* ORDER NOTICE */}
       {orderNotice && (
         <AppCard
           style={[
@@ -283,7 +569,7 @@ export function CommerceScreen({
                   ? 'checkmark-circle'
                   : 'alert-circle'
               }
-              size={48}
+              size={42}
               color={
                 orderNotice.type === 'success'
                   ? semanticTokens.color.success
@@ -295,7 +581,7 @@ export function CommerceScreen({
           <Text style={styles.noticeTitle}>
             {orderNotice.type === 'success'
               ? 'Pesanan berhasil dikirim!'
-              : 'Checkout gagal'}
+              : 'Terjadi kesalahan'}
           </Text>
 
           <Text style={styles.noticeMessage}>
@@ -321,7 +607,7 @@ export function CommerceScreen({
               </Text>
 
               <Text style={styles.orderInfoValue}>
-                Rp {orderNotice.totalAmount.toLocaleString('id-ID')}
+                {money(orderNotice.totalAmount)}
               </Text>
             </View>
           )}
@@ -338,44 +624,49 @@ export function CommerceScreen({
             </View>
           )}
 
-          {orderNotice.type === 'success' ? (
-            <AppButton
-              label="Lihat Pesanan"
-              variant="primary"
-              onPress={() =>
-                navigation?.navigate('OrderHistory')
+          <AppButton
+            label={
+              orderNotice.type === 'success'
+                ? 'Lihat Pesanan'
+                : 'Tutup'
+            }
+            variant="primary"
+            onPress={() => {
+              if (orderNotice.type === 'success') {
+                navigation?.navigate('OrderHistory');
               }
-              fullWidth
-              height={46}
-              radius={tTokens.radius.md}
-            />
-          ) : (
-            <AppButton
-              label="Coba Lagi"
-              variant="primary"
-              onPress={() => setOrderNotice(null)}
-              fullWidth
-              height={46}
-              radius={tTokens.radius.md}
-            />
-          )}
+
+              setOrderNotice(null);
+            }}
+            fullWidth
+            height={46}
+            radius={tTokens.radius.md}
+          />
         </AppCard>
       )}
 
-      {/* CART / AJUKAN PESANAN */}
+      {/* CART */}
       {cart.length > 0 && (
         <AppCard style={styles.cartCard}>
           <View style={styles.cartHeader}>
-            <Text style={styles.cartTitle}>
-              {t('commerce.cart')}
-            </Text>
+            <View>
+              <Text style={styles.cartTitle}>
+                {t('commerce.cart')}
+              </Text>
 
-            <Text style={styles.cartCount}>
-              {totalCartCount} item
-            </Text>
+              <Text style={styles.cartCount}>
+                {totalCartCount} item dalam keranjang
+              </Text>
+            </View>
+
+            <Ionicons
+              name="bag-check-outline"
+              size={25}
+              color={semanticTokens.color.pdp}
+            />
           </View>
 
-          {cart.map((item: CartItem) => (
+          {cart.filter(Boolean).map((item: CartItem) => (
             <View
               key={item.productId}
               style={styles.cartItem}
@@ -394,7 +685,7 @@ export function CommerceScreen({
 
               <View style={styles.cartItemActions}>
                 <Text style={styles.cartItemPrice}>
-                  Rp {(item.price * item.quantity).toLocaleString('id-ID')}
+                  {money(item.price * item.quantity)}
                 </Text>
 
                 <Pressable
@@ -402,10 +693,11 @@ export function CommerceScreen({
                   onPress={() =>
                     handleRemoveFromCart(item.productId)
                   }
-                  disabled={isSubmitting}
+                  disabled={
+                    isSubmitting ||
+                    loadingProductId !== null
+                  }
                   hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Hapus ${item.name} dari keranjang`}
                 >
                   <Ionicons
                     name="trash-outline"
@@ -419,18 +711,16 @@ export function CommerceScreen({
 
           <View style={styles.cartDivider} />
 
-          {/* TOTAL */}
           <View style={styles.cartItem}>
             <Text style={styles.cartTotalLabel}>
               {t('commerce.cartTotal')}
             </Text>
 
             <Text style={styles.cartTotalValue}>
-              Rp {totalCart.toLocaleString('id-ID')}
+              {money(totalCart)}
             </Text>
           </View>
 
-          {/* ACKNOWLEDGMENT */}
           <View style={styles.ackRow}>
             <Pressable
               accessibilityRole="checkbox"
@@ -446,7 +736,8 @@ export function CommerceScreen({
               <View
                 style={[
                   styles.customCheckbox,
-                  acknowledged && styles.customCheckboxChecked,
+                  acknowledged &&
+                    styles.customCheckboxChecked,
                 ]}
               >
                 {acknowledged && (
@@ -464,12 +755,15 @@ export function CommerceScreen({
             </Text>
           </View>
 
-          {/* CHECKOUT */}
           <AppButton
             label={t('commerce.checkout')}
             variant="primary"
             onPress={handleCheckout}
-            disabled={!acknowledged || isSubmitting}
+            disabled={
+              !acknowledged ||
+              isSubmitting ||
+              loadingProductId !== null
+            }
             loading={isSubmitting}
             fullWidth
             height={46}
@@ -522,22 +816,34 @@ export function CommerceScreen({
         </View>
 
         <Pressable
-          style={styles.recomButton}
+          style={[
+            styles.recomButton,
+            loadingProductId !== null &&
+              styles.loadingButton,
+          ]}
           onPress={handleAddRecommendation}
-          accessibilityRole="button"
+          disabled={
+            loadingProductId !== null || isSubmitting
+          }
         >
-          <Ionicons
-            name="cart"
-            size={18}
-            color="#FFFFFF"
-            style={{
-              marginRight: tTokens.spacing['2xs'],
-            }}
-          />
+          {loadingProductId !== null ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <>
+              <Ionicons
+                name="cart"
+                size={18}
+                color="#FFFFFF"
+                style={{
+                  marginRight: tTokens.spacing['2xs'],
+                }}
+              />
 
-          <Text style={styles.recomButtonText}>
-            {t('commerce.addToCart')}
-          </Text>
+              <Text style={styles.recomButtonText}>
+                {t('commerce.addToCart')}
+              </Text>
+            </>
+          )}
         </Pressable>
       </AppCard>
 
@@ -548,9 +854,7 @@ export function CommerceScreen({
         </Text>
 
         {isLoading ? (
-          <AppLoadingState
-            label={t('common.loading')}
-          />
+          <AppLoadingState label={t('common.loading')} />
         ) : !products || products.length === 0 ? (
           <AppEmptyState
             title={t('commerce.empty')}
@@ -559,67 +863,94 @@ export function CommerceScreen({
             onAction={refetch}
           />
         ) : (
-          products.map((product: CatalogProduct) => (
-            <AppCard
-              key={product.id}
-              style={styles.productCard}
-            >
-              <View style={styles.productTopRow}>
-                <View style={styles.productThumb}>
-                  <Ionicons
-                    name="cube-outline"
-                    size={28}
-                    color={semanticTokens.color.brand}
-                  />
-                </View>
+          products.map((product: CatalogProduct) => {
+            const isAdding =
+              loadingProductId === product.id;
 
-                <View style={styles.productInfoCol}>
-                  <View style={styles.titlePriceRow}>
-                    <Text style={styles.catalogProductName}>
-                      {product.nama}
-                    </Text>
-
-                    <Text style={styles.catalogPrice}>
-                      Rp {product.harga.toLocaleString('id-ID')}
-                    </Text>
+            return (
+              <AppCard
+                key={product.id}
+                style={styles.productCard}
+              >
+                <View style={styles.productTopRow}>
+                  <View style={styles.productThumb}>
+                    <Ionicons
+                      name="cube-outline"
+                      size={28}
+                      color={semanticTokens.color.brand}
+                    />
                   </View>
 
-                  <Text style={styles.catalogMeta}>
-                    {product.sku}
-                    {' • '}
-                    {product.kategori}
-                    {' • '}
-                    {t('commerce.stock')} {product.stok}
-                  </Text>
+                  <View style={styles.productInfoCol}>
+                    <View style={styles.titlePriceRow}>
+                      <Text style={styles.catalogProductName}>
+                        {product.nama}
+                      </Text>
+
+                      <Text style={styles.catalogPrice}>
+                        {money(product.harga)}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.catalogMeta}>
+                      {product.sku}
+                      {' • '}
+                      {product.kategori}
+                      {' • '}
+                      {t('commerce.stock')} {product.stok}
+                    </Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.productBottomRow}>
-                <Pressable
-                  style={[
-                    styles.addCartOutlineBtn,
-                    product.stok <= 0 && styles.disabledButton,
-                  ]}
-                  disabled={product.stok <= 0}
-                  onPress={() => handleAddToCart(product)}
-                  accessibilityRole="button"
-                >
-                  <Ionicons
-                    name="cart-outline"
-                    size={16}
-                    color={semanticTokens.color.pdp}
-                    style={{ marginRight: 6 }}
-                  />
+                <View style={styles.productBottomRow}>
+                  <Pressable
+                    style={[
+                      styles.addCartOutlineBtn,
+                      (product.stok <= 0 ||
+                        loadingProductId !== null) &&
+                        styles.disabledButton,
+                      isAdding && styles.addingButton,
+                    ]}
+                    disabled={
+                      product.stok <= 0 ||
+                      loadingProductId !== null ||
+                      isSubmitting
+                    }
+                    onPress={() => handleAddToCart(product)}
+                    accessibilityRole="button"
+                  >
+                    {isAdding ? (
+                      <>
+                        <ActivityIndicator
+                          size="small"
+                          color={semanticTokens.color.pdp}
+                        />
 
-                  <Text style={styles.addCartOutlineText}>
-                    {product.stok <= 0
-                      ? 'Stok Habis'
-                      : t('commerce.addToCart')}
-                  </Text>
-                </Pressable>
-              </View>
-            </AppCard>
-          ))
+                        <Text style={styles.addCartOutlineText}>
+                          Menambahkan...
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <Ionicons
+                          name="cart-outline"
+                          size={16}
+                          color={semanticTokens.color.pdp}
+                          style={{ marginRight: 6 }}
+                        />
+
+                        <Text style={styles.addCartOutlineText}>
+                          {product.stok <= 0
+                            ? 'Stok Habis'
+                            : t('commerce.addToCart')}
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+              </AppCard>
+            );
+          })
         )}
       </View>
     </AppScreen>
@@ -647,6 +978,136 @@ const styles = StyleSheet.create({
     lineHeight: tTokens.typography.labelSmall.lineHeight,
   },
 
+  // SUCCESS MODAL
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.48)',
+    justifyContent: 'flex-end',
+  },
+
+  successSheet: {
+    backgroundColor: semanticTokens.color.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: tTokens.spacing.lg,
+    paddingTop: tTokens.spacing.sm,
+    paddingBottom: 32,
+  },
+
+  sheetHandle: {
+    width: 42,
+    height: 5,
+    borderRadius: 10,
+    backgroundColor: semanticTokens.color.border,
+    alignSelf: 'center',
+    marginBottom: tTokens.spacing.lg,
+  },
+
+  successIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: semanticTokens.color.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    marginBottom: tTokens.spacing.md,
+  },
+
+  successTitle: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: semanticTokens.color.textPrimary,
+    textAlign: 'center',
+  },
+
+  successSubtitle: {
+    fontSize: tTokens.typography.bodyMedium.size,
+    color: semanticTokens.color.textSecondary,
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: tTokens.spacing.lg,
+  },
+
+  addedProductCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: tTokens.spacing.md,
+    borderWidth: 1,
+    borderColor: semanticTokens.color.border,
+    borderRadius: tTokens.radius.md,
+    gap: tTokens.spacing.sm,
+  },
+
+  addedProductIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: tTokens.radius.sm,
+    backgroundColor: semanticTokens.badge.info.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  addedProductInfo: {
+    flex: 1,
+  },
+
+  addedProductName: {
+    fontSize: tTokens.typography.bodyMedium.size,
+    fontWeight: '700',
+    color: semanticTokens.color.textPrimary,
+  },
+
+  addedProductSku: {
+    fontSize: tTokens.typography.caption.size,
+    color: semanticTokens.color.textSecondary,
+    marginTop: 2,
+  },
+
+  addedProductQuantity: {
+    fontSize: tTokens.typography.caption.size,
+    color: semanticTokens.color.brand,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+
+  addedProductPrice: {
+    fontSize: tTokens.typography.bodyMedium.size,
+    fontWeight: '700',
+    color: semanticTokens.color.textPrimary,
+  },
+
+  successCartSummary: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: tTokens.spacing.md,
+    marginBottom: tTokens.spacing.sm,
+  },
+
+  summaryLabel: {
+    fontSize: tTokens.typography.caption.size,
+    color: semanticTokens.color.textSecondary,
+  },
+
+  summaryValue: {
+    fontSize: tTokens.typography.bodyLarge.size,
+    fontWeight: '800',
+    color: semanticTokens.color.textPrimary,
+    marginTop: 4,
+  },
+
+  continueButton: {
+    alignItems: 'center',
+    paddingVertical: tTokens.spacing.md,
+  },
+
+  continueButtonText: {
+    fontSize: tTokens.typography.bodyMedium.size,
+    fontWeight: '700',
+    color: semanticTokens.color.brand,
+  },
+
+  // NOTICE
   noticeCard: {
     padding: tTokens.spacing.md,
     borderRadius: tTokens.radius.lg,
@@ -679,6 +1140,7 @@ const styles = StyleSheet.create({
     fontSize: tTokens.typography.bodyMedium.size,
     lineHeight: tTokens.typography.bodyMedium.lineHeight,
     color: semanticTokens.color.textSecondary,
+    marginBottom: tTokens.spacing.md,
   },
 
   cartBtnWrapper: {
@@ -735,6 +1197,7 @@ const styles = StyleSheet.create({
     color: semanticTokens.color.textPrimary,
   },
 
+  // CART
   cartCard: {
     padding: tTokens.spacing.md,
     borderRadius: tTokens.radius.lg,
@@ -747,7 +1210,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: tTokens.spacing.xs,
+    marginBottom: tTokens.spacing.md,
   },
 
   cartTitle: {
@@ -759,6 +1222,7 @@ const styles = StyleSheet.create({
   cartCount: {
     color: semanticTokens.color.textSecondary,
     fontSize: tTokens.typography.caption.size,
+    marginTop: 3,
   },
 
   cartItem: {
@@ -856,6 +1320,7 @@ const styles = StyleSheet.create({
     fontSize: tTokens.typography.caption.size,
   },
 
+  // RECOMMENDATION
   recomCard: {
     padding: tTokens.spacing.md,
     borderRadius: tTokens.radius.lg,
@@ -946,6 +1411,11 @@ const styles = StyleSheet.create({
     color: semanticTokens.color.surface,
   },
 
+  loadingButton: {
+    opacity: 0.65,
+  },
+
+  // CATALOG
   catalogSection: {
     marginTop: tTokens.spacing.sm,
   },
@@ -1024,6 +1494,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: tTokens.spacing.md,
+    gap: 6,
+  },
+
+  addingButton: {
+    borderColor: semanticTokens.color.pdp,
   },
 
   disabledButton: {

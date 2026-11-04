@@ -243,6 +243,9 @@ const dictionaries = {
     'selfie.later': 'Verifikasi Nanti',
     'selfie.security':
       'Tiga foto selfie dikirim ke layanan Meta untuk pemeriksaan liveness dan tidak disimpan oleh aplikasi.',
+    'cart.remove_failed': 'Gagal Menghapus Product',
+    'commerce.itemAdded': 'Product Ditambah',
+    'cart.add_failed': 'Gagal Menambah Product'
   },
   en: {
     'app.name': 'SawitEco',
@@ -487,6 +490,9 @@ const dictionaries = {
     'selfie.later': 'Verify Later',
     'selfie.security':
       'Three selfie photos are sent to Meta for liveness screening and are not stored by the app.',
+    'cart.remove_failed': 'Failed to Remove Item',
+    'commerce.itemAdded': 'Item Added',
+    'cart.add_failed': 'Failed to Add Item'
   },
 } as const;
 

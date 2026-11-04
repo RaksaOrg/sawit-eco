@@ -1,6 +1,6 @@
-
-import React from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   View,
@@ -17,9 +17,10 @@ import {
 
 import { foundationTokens } from '../theme/foundation/tokens';
 import { semanticTokens } from '../theme/semantic/tokens';
-import { useMobileAppStore } from '../state/store';
+import { useMobileAppStore, CartItem } from '../state/store';
 import { createTranslator } from '../i18n';
 import { useSubmitOrder } from '../core/api/hooks';
+import { apiRequest } from '../core/api/client';
 
 type OrderNotice = {
   type: 'success' | 'error';
@@ -34,62 +35,247 @@ type CartScreenProps = {
   };
 };
 
+type BackendCartItem = {
+  id: string;
+  productId: string;
+  productName: string;
+  sku: string;
+  kategori: string;
+  harga: number;
+  satuan: string;
+  kuantitas: number;
+  subtotal: number;
+  blokKode: string;
+  recommendationId: string | null;
+  alasanRekomendasi: string | null;
+};
+
+type BackendCartResponse = {
+  id: string;
+  items: BackendCartItem[];
+  total: number;
+  count: number;
+};
+
+type CartRow = CartItem & {
+  cartItemId: string;
+};
+
 const tokens = foundationTokens;
 
 const formatCurrency = (amount: number) =>
-  `Rp ${amount.toLocaleString('id-ID')}`;
+  `Rp ${(Number(amount) || 0).toLocaleString('id-ID')}`;
 
 export function CartScreen({ navigation }: CartScreenProps) {
   const language = useMobileAppStore((s) => s.language);
   const session = useMobileAppStore((s) => s.session);
   const cart = useMobileAppStore((s) => s.cart);
+  const addToCart = useMobileAppStore((s) => s.addToCart);
+  const clearCart = useMobileAppStore((s) => s.clearCart);
   const removeFromCart = useMobileAppStore((s) => s.removeFromCart);
 
   const submitOrderMutation = useSubmitOrder();
 
-  const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [orderNotice, setOrderNotice] =
-    React.useState<OrderNotice | null>(null);
+    useState<OrderNotice | null>(null);
 
   const t = createTranslator(language);
 
-  const selectedItems = cart.filter((item) =>
-    selectedIds.includes(item.productId),
+  // CART FETCH
+  const fetchCartFromBackend = useCallback(async () => {
+    try {
+      const response = await apiRequest<BackendCartResponse>(
+        '/api/commerce/cart',
+      );
+
+      console.log(
+        '[CART BACKEND RESPONSE]',
+        JSON.stringify(response, null, 2),
+      );
+
+      const backendItems = Array.isArray(response?.items)
+        ? response.items
+        : [];
+
+      const normalizedCart: CartRow[] = backendItems
+        .filter(
+          (item) =>
+            item != null &&
+            typeof item.id === 'string' &&
+            typeof item.productId === 'string' &&
+            item.productId.length > 0,
+        )
+        .map((item) => ({
+          cartItemId: item.id,
+          productId: item.productId,
+          name: item.productName ?? '',
+          sku: item.sku ?? '',
+          price: Number(item.harga) || 0,
+          quantity: Number(item.kuantitas) || 0,
+          blockCode: item.blokKode ?? 'B2',
+          recommendationId: item.recommendationId ?? undefined,
+          reason: item.alasanRekomendasi ?? undefined,
+        }));
+
+      // Replace local cart with backend snapshot.
+      clearCart();
+
+      normalizedCart.forEach((item) => {
+        addToCart(item);
+      });
+
+      // Keep only selections that still exist.
+      const validIds = normalizedCart.map(
+        (item) => item.cartItemId,
+      );
+
+      setSelectedIds((current) =>
+        current.filter((id) => validIds.includes(id)),
+      );
+
+      return normalizedCart;
+    } catch (err) {
+      console.error('[CART] Failed to fetch:', err);
+      throw err;
+    }
+  }, [addToCart, clearCart]);
+
+  // INITIAL FETCH
+  useEffect(() => {
+    if (session?.userId) {
+      void fetchCartFromBackend().catch(() => {});
+    }
+  }, [session?.userId, fetchCartFromBackend]);
+
+  // VALID CART
+  const validCart = (cart ?? []).filter(
+    (item): item is CartRow =>
+      item != null &&
+      typeof item.productId === 'string' &&
+      item.productId.length > 0 &&
+      typeof (item as CartRow).cartItemId === 'string',
   );
 
+  const getCartRowId = (item: CartRow) =>
+    item.cartItemId;
+
+  const selectedItems = validCart.filter((item) =>
+    selectedIds.includes(getCartRowId(item)),
+  );
+
+  const getSafeNumber = (value: unknown, fallback = 0) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+  };
+
   const selectedTotal = selectedItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) =>
+      sum +
+      getSafeNumber(item.price) *
+        getSafeNumber(item.quantity),
     0,
   );
 
   const selectedQuantity = selectedItems.reduce(
-    (sum, item) => sum + item.quantity,
+    (sum, item) =>
+      sum + getSafeNumber(item.quantity),
     0,
   );
 
   const isAllSelected =
-    cart.length > 0 && selectedItems.length === cart.length;
+    validCart.length > 0 &&
+    selectedItems.length === validCart.length;
 
-  const toggleItem = (productId: string) => {
+  const isDeleting = deletingIds.length > 0;
+
+  // SELECTION
+  const toggleItem = (cartRowId: string) => {
+    if (isSubmitting || isDeleting) return;
+
     setSelectedIds((current) =>
-      current.includes(productId)
-        ? current.filter((id) => id !== productId)
-        : [...current, productId],
+      current.includes(cartRowId)
+        ? current.filter((id) => id !== cartRowId)
+        : [...current, cartRowId],
     );
   };
 
   const toggleSelectAll = () => {
+    if (isSubmitting || isDeleting) return;
+
     setSelectedIds(
-      isAllSelected ? [] : cart.map((item) => item.productId),
+      isAllSelected
+        ? []
+        : validCart.map(getCartRowId),
     );
   };
 
+  // DELETE CART ITEM
+  const handleDeleteCartItem = async (item: CartRow) => {
+    const cartItemId = item.cartItemId;
+
+    if (
+      !cartItemId ||
+      deletingIds.includes(cartItemId) ||
+      isSubmitting
+    ) {
+      return;
+    }
+
+    setDeletingIds((current) => [...current, cartItemId]);
+    setOrderNotice(null);
+
+    try {
+      console.log('[CART DELETE] Request:', {
+        itemId: cartItemId,
+        productId: item.productId,
+      });
+
+      // 1. Delete actual cart row from backend.
+      await apiRequest('/api/commerce/cart', {
+        method: 'DELETE',
+        body: JSON.stringify({
+          itemId: cartItemId,
+        }),
+      });
+
+      console.log('[CART DELETE] Backend success:', cartItemId);
+
+      // 2. Refresh backend snapshot.
+      // This also removes the deleted item from Zustand.
+      await fetchCartFromBackend();
+
+      // 3. Remove selection for deleted row.
+      setSelectedIds((current) =>
+        current.filter((id) => id !== cartItemId),
+      );
+
+      setOrderNotice(null);
+    } catch (error) {
+      console.error('[CART DELETE FAILED]', error);
+
+      setOrderNotice({
+        type: 'error',
+        message: 'Gagal menghapus produk dari keranjang. Silakan coba lagi.',
+      });
+
+      // Do not remove item from Zustand when backend delete fails.
+    } finally {
+      setDeletingIds((current) =>
+        current.filter((id) => id !== cartItemId),
+      );
+    }
+  };
+
+  // CHECKOUT
   const handleCheckout = async () => {
     if (
       selectedItems.length === 0 ||
       !session?.userId ||
-      isSubmitting
+      isSubmitting ||
+      isDeleting
     ) {
       return;
     }
@@ -107,7 +293,7 @@ export function CartScreen({ navigation }: CartScreenProps) {
         idempotencyKey: `checkout-${session.userId}-${Date.now()}`,
         items: checkoutItems.map((item) => ({
           productId: item.productId,
-          quantity: item.quantity,
+          quantity: getSafeNumber(item.quantity),
           blockCode: item.blockCode,
           recommendationReason: item.reason,
         })),
@@ -115,10 +301,16 @@ export function CartScreen({ navigation }: CartScreenProps) {
 
       const order = response?.order;
 
-      // Remove only successfully checked-out products.
-      checkoutItems.forEach((item) => {
-        removeFromCart(item.productId);
-      });
+      // Checkout success must not be reported as failed
+      // just because refreshing cart fails.
+      try {
+        await fetchCartFromBackend();
+      } catch (refreshError) {
+        console.error(
+          '[CART] Refresh after checkout failed:',
+          refreshError,
+        );
+      }
 
       setSelectedIds([]);
 
@@ -132,7 +324,7 @@ export function CartScreen({ navigation }: CartScreenProps) {
         totalAmount: order?.totalHarga ?? checkoutTotal,
       });
     } catch (error) {
-      console.error('Checkout failed:', error);
+      console.error('[CHECKOUT FAILED]', error);
 
       setOrderNotice({
         type: 'error',
@@ -172,7 +364,7 @@ export function CartScreen({ navigation }: CartScreenProps) {
           <Text style={styles.noticeTitle}>
             {orderNotice.type === 'success'
               ? 'Pesanan Berhasil!'
-              : 'Checkout Gagal'}
+              : 'Checkout / Cart Gagal'}
           </Text>
 
           <Text style={styles.noticeMessage}>
@@ -181,7 +373,10 @@ export function CartScreen({ navigation }: CartScreenProps) {
 
           {orderNotice.orderId && (
             <View style={styles.infoRow}>
-              <Text style={styles.metaText}>Nomor pesanan</Text>
+              <Text style={styles.metaText}>
+                Nomor pesanan
+              </Text>
+
               <Text style={styles.infoValue}>
                 {orderNotice.orderId}
               </Text>
@@ -190,7 +385,10 @@ export function CartScreen({ navigation }: CartScreenProps) {
 
           {orderNotice.totalAmount != null && (
             <View style={styles.infoRow}>
-              <Text style={styles.metaText}>Total pesanan</Text>
+              <Text style={styles.metaText}>
+                Total pesanan
+              </Text>
+
               <Text style={styles.infoValue}>
                 {formatCurrency(orderNotice.totalAmount)}
               </Text>
@@ -206,11 +404,11 @@ export function CartScreen({ navigation }: CartScreenProps) {
         </Text>
 
         <Text style={styles.itemCount}>
-          {cart.length} produk
+          {validCart.length} produk
         </Text>
       </View>
 
-      {cart.length === 0 ? (
+      {validCart.length === 0 ? (
         <View style={styles.emptyContainer}>
           <AppEmptyState
             icon="cart-outline"
@@ -225,10 +423,14 @@ export function CartScreen({ navigation }: CartScreenProps) {
             <TouchableOpacity
               style={styles.selectAllButton}
               onPress={toggleSelectAll}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isDeleting}
             >
               <Ionicons
-                name={isAllSelected ? 'checkmark-circle' : 'ellipse-outline'}
+                name={
+                  isAllSelected
+                    ? 'checkmark-circle'
+                    : 'ellipse-outline'
+                }
                 size={21}
                 color={
                   isAllSelected
@@ -249,26 +451,34 @@ export function CartScreen({ navigation }: CartScreenProps) {
 
           {/* CART ITEMS */}
           <View style={styles.cartItems}>
-            {cart.map((item) => {
-              const isSelected = selectedIds.includes(item.productId);
+            {validCart.map((item) => {
+              const cartRowId = getCartRowId(item);
+              const isSelected = selectedIds.includes(cartRowId);
+              const itemPrice = getSafeNumber(item.price);
+              const itemQuantity = getSafeNumber(item.quantity);
+              const itemDeleting = deletingIds.includes(cartRowId);
 
               return (
                 <AppCard
-                  key={item.productId}
+                  key={cartRowId}
                   style={styles.cartCard}
                 >
                   <View style={styles.itemRow}>
                     <TouchableOpacity
                       style={styles.checkbox}
-                      onPress={() => toggleItem(item.productId)}
-                      disabled={isSubmitting}
+                      onPress={() => toggleItem(cartRowId)}
+                      disabled={isSubmitting || isDeleting}
                       accessibilityRole="checkbox"
-                      accessibilityState={{ checked: isSelected }}
+                      accessibilityState={{
+                        checked: isSelected,
+                      }}
                       accessibilityLabel={`Pilih ${item.name}`}
                     >
                       <Ionicons
                         name={
-                          isSelected ? 'checkmark-circle' : 'ellipse-outline'
+                          isSelected
+                            ? 'checkmark-circle'
+                            : 'ellipse-outline'
                         }
                         size={23}
                         color={
@@ -302,32 +512,41 @@ export function CartScreen({ navigation }: CartScreenProps) {
 
                       <View style={styles.itemFooter}>
                         <Text style={styles.quantity}>
-                          {item.quantity} × {formatCurrency(item.price)}
+                          {itemQuantity} × {formatCurrency(itemPrice)}
                         </Text>
 
                         <Text style={styles.itemPrice}>
-                          {formatCurrency(item.price * item.quantity)}
+                          {formatCurrency(itemPrice * itemQuantity)}
                         </Text>
                       </View>
                     </View>
 
+                    {/* DELETE */}
                     <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => {
-                        removeFromCart(item.productId);
-                        setSelectedIds((current) =>
-                          current.filter((id) => id !== item.productId),
-                        );
-                      }}
-                      disabled={isSubmitting}
+                      style={[
+                        styles.deleteButton,
+                        itemDeleting && styles.deleteButtonLoading,
+                      ]}
+                      onPress={() => handleDeleteCartItem(item)}
+                      disabled={
+                        isSubmitting ||
+                        isDeleting
+                      }
                       accessibilityRole="button"
                       accessibilityLabel={`Hapus ${item.name}`}
                     >
-                      <Ionicons
-                        name="trash-outline"
-                        size={19}
-                        color={semanticTokens.color.error}
-                      />
+                      {itemDeleting ? (
+                        <ActivityIndicator
+                          size="small"
+                          color={semanticTokens.color.error}
+                        />
+                      ) : (
+                        <Ionicons
+                          name="trash-outline"
+                          size={19}
+                          color={semanticTokens.color.error}
+                        />
+                      )}
                     </TouchableOpacity>
                   </View>
                 </AppCard>
@@ -353,7 +572,11 @@ export function CartScreen({ navigation }: CartScreenProps) {
                 variant="primary"
                 fullWidth
                 onPress={handleCheckout}
-                disabled={!session?.userId || isSubmitting}
+                disabled={
+                  !session?.userId ||
+                  isSubmitting ||
+                  isDeleting
+                }
                 loading={isSubmitting}
               />
             </View>
@@ -475,8 +698,17 @@ const styles = StyleSheet.create({
   },
 
   deleteButton: {
-    paddingLeft: tokens.spacing.sm,
-    paddingTop: tokens.spacing['2xs'],
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: tokens.spacing.xs,
+    borderRadius: tokens.radius.sm,
+    backgroundColor: semanticTokens.badge.error.background,
+  },
+
+  deleteButtonLoading: {
+    opacity: 0.65,
   },
 
   summary: {
